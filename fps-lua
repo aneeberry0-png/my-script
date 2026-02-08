@@ -1,0 +1,166 @@
+-- Dịch vụ
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+-- Xóa UI cũ
+if getgenv().KawaiiCounter then
+	getgenv().KawaiiCounter:Destroy()
+end
+
+--------------------------------------------------------------------------------
+-- CẤU HÌNH ID (Assets)
+--------------------------------------------------------------------------------
+local USER_IDS = {
+	TaiPhai = "117246725721218",
+	TaiTrai = "84295531111003",
+	No      = "113168576617719",
+	MatMeo  = "110573798159093"
+}
+
+local function getTexture(id)
+	local cleanId = tostring(id):gsub("%s+", "")
+	return "rbxthumb://type=Asset&id=" .. cleanId .. "&w=420&h=420"
+end
+
+-- Tạo ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KawaiiCounter"
+if pcall(function() ScreenGui.Parent = CoreGui end) then
+	ScreenGui.Parent = CoreGui
+else
+	ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+end
+getgenv().KawaiiCounter = ScreenGui
+
+--------------------------------------------------------------------------------
+-- 1. FRAME CHÍNH (Đưa về chính giữa phía trên)
+--------------------------------------------------------------------------------
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(255, 225, 235)
+MainFrame.BackgroundTransparency = 0.15
+-- Bắt đầu từ trên cao để tween xuống
+MainFrame.Position = UDim2.new(0.5, 0, 0, -60) 
+MainFrame.Size = UDim2.new(0, 270, 0, 34) 
+MainFrame.AnchorPoint = Vector2.new(0.5, 0) -- CĂN GIỮA
+MainFrame.BorderSizePixel = 0
+MainFrame.ZIndex = 10
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = MainFrame
+
+--------------------------------------------------------------------------------
+-- 2. VIỀN & GRADIENT
+--------------------------------------------------------------------------------
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Parent = MainFrame
+UIStroke.Thickness = 1.8
+UIStroke.Color = Color3.new(1, 1, 1)
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+local pinkSequence = ColorSequence.new({
+	ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 105, 180)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+	ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 105, 180))
+})
+
+local StrokeGradient = Instance.new("UIGradient")
+StrokeGradient.Parent = UIStroke
+StrokeGradient.Color = pinkSequence
+
+--------------------------------------------------------------------------------
+-- 3. TEXT
+--------------------------------------------------------------------------------
+local InfoLabel = Instance.new("TextLabel")
+InfoLabel.Parent = MainFrame
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.Size = UDim2.new(1, 0, 1, 0)
+InfoLabel.Font = Enum.Font.FredokaOne
+InfoLabel.TextSize = 15 
+InfoLabel.TextColor3 = Color3.new(1, 1, 1)
+InfoLabel.ZIndex = 11
+
+local TextStroke = Instance.new("UIStroke")
+TextStroke.Parent = InfoLabel
+TextStroke.Thickness = 1.5
+TextStroke.Color = Color3.fromRGB(80, 20, 40)
+TextStroke.Transparency = 0.2
+
+local TextGradient = Instance.new("UIGradient")
+TextGradient.Parent = InfoLabel
+TextGradient.Color = pinkSequence
+
+--------------------------------------------------------------------------------
+-- 4. TRANG TRÍ
+--------------------------------------------------------------------------------
+local animObjects = {}
+
+local function createDeco(name, rawId, pos, size, rot, zIndex, anchor)
+	local img = Instance.new("ImageLabel")
+	img.Name = name
+	img.Parent = MainFrame
+	img.BackgroundTransparency = 1
+	img.Position = pos
+	img.Size = size
+	img.Image = getTexture(rawId)
+	img.Rotation = rot or 0
+	img.ZIndex = zIndex
+	if anchor then img.AnchorPoint = anchor end
+	
+	animObjects[name] = {
+		Instance = img,
+		BaseRot = rot or 0,
+		BasePos = pos,
+		BaseSize = size
+	}
+	return img
+end
+
+createDeco("LeftEar", USER_IDS.TaiTrai, UDim2.new(0, 15, 0, -20), UDim2.new(0, 42, 0, 42), -10, 12)
+createDeco("RightEar", USER_IDS.TaiPhai, UDim2.new(1, -55, 0, -20), UDim2.new(0, 42, 0, 42), 10, 12)
+createDeco("Bow", USER_IDS.No, UDim2.new(1, -22, 1, -12), UDim2.new(0, 32, 0, 32), -15, 13)
+createDeco("CatIcon", USER_IDS.MatMeo, UDim2.new(0, -15, 0.5, 0), UDim2.new(0, 38, 0, 38), 0, 12, Vector2.new(1, 0.5))
+
+--------------------------------------------------------------------------------
+-- 5. ANIMATION & TWEEN
+--------------------------------------------------------------------------------
+local FrameCount = 0
+local LastTime = tick()
+local RotationAngle = 0
+
+RunService.RenderStepped:Connect(function()
+	RotationAngle = (RotationAngle + 2) % 360
+	StrokeGradient.Rotation = RotationAngle
+	TextGradient.Rotation = RotationAngle
+
+	FrameCount = FrameCount + 1
+	if tick() - LastTime >= 1 then
+		local FPS = FrameCount
+		local TimeStr = os.date("%H:%M")
+		local User = Players.LocalPlayer.Name
+		InfoLabel.Text = string.format("FPS: %d  |  %s  |  %s", FPS, TimeStr, User)
+		FrameCount = 0
+		LastTime = tick()
+	end
+
+	local t = tick()
+	if animObjects["LeftEar"] then animObjects["LeftEar"].Instance.Rotation = animObjects["LeftEar"].BaseRot + math.sin(t * 3) * 4 end
+	if animObjects["RightEar"] then animObjects["RightEar"].Instance.Rotation = animObjects["RightEar"].BaseRot - math.sin(t * 3 + 1) * 4 end
+	if animObjects["Bow"] then
+		animObjects["Bow"].Instance.Position = animObjects["Bow"].BasePos + UDim2.new(0, 0, 0, math.sin(t * 4) * 2)
+	end
+	if animObjects["CatIcon"] then
+		animObjects["CatIcon"].Instance.Position = animObjects["CatIcon"].BasePos + UDim2.new(0, 0, 0, math.sin(t * 3) * 4)
+	end
+end)
+
+-- TWEEN VỀ CHÍNH GIỮA (0.5), CÁCH MÉP TRÊN 15 PIXEL
+TweenService:Create(MainFrame, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+	Position = UDim2.new(0.5, 0, 0, 0) 
+}):Play()
+
+print("Kawaii UI: Centered Top! ✨")
