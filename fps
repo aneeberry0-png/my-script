@@ -86,7 +86,7 @@ InfoLabel.ZIndex = 11
 
 local TextStroke = Instance.new("UIStroke")
 TextStroke.Parent = InfoLabel
-TextStroke.Thickness = 1.5
+TextStroke.Thickness = 0.5
 TextStroke.Color = Color3.fromRGB(80, 20, 40)
 TextStroke.Transparency = 0.2
 
@@ -123,7 +123,7 @@ end
 createDeco("LeftEar", USER_IDS.TaiTrai, UDim2.new(0, 15, 0, -20), UDim2.new(0, 42, 0, 42), -10, 12)
 createDeco("RightEar", USER_IDS.TaiPhai, UDim2.new(1, -55, 0, -20), UDim2.new(0, 42, 0, 42), 10, 12)
 createDeco("Bow", USER_IDS.No, UDim2.new(1, -22, 1, -12), UDim2.new(0, 32, 0, 32), -15, 13)
-createDeco("CatIcon", USER_IDS.MatMeo, UDim2.new(0, -15, 0.5, 0), UDim2.new(0, 38, 0, 38), 0, 12, Vector2.new(1, 0.5))
+createDeco("CatIcon", USER_IDS.MatMeo, UDim2.new(0, -5, 0.5, 0), UDim2.new(0, 38, 0, 38), 0, 12, Vector2.new(1, 0.5))
 
 --------------------------------------------------------------------------------
 -- 5. ANIMATION & TWEEN
@@ -160,7 +160,7 @@ end)
 
 -- TWEEN VỀ CHÍNH GIỮA (0.5), CÁCH MÉP TRÊN 15 PIXEL
 TweenService:Create(MainFrame, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-	Position = UDim2.new(0.5, 0, 0, 0) 
+	Position = UDim2.new(0.5, 0, 0, -30) 
 }):Play()
 
 print("Kawaii UI: Centered Top! ✨")
