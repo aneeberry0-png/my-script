@@ -1,13 +1,18 @@
-local function setFPS(cap)
-    local f = setfpscap or set_fps_cap or setfps
-    if f then f(cap) end
+local function lock(cap)
+    if setfpscap then
+        setfpscap(cap)
+    elseif set_fps_cap then
+        set_fps_cap(cap)
+    elseif setfps then
+        setfps(cap)
+    end
 end
 
 task.spawn(function()
     while task.wait(1) do
         local cfg = getgenv().Config
         if cfg and cfg.MaxFPS then
-            setFPS(cfg.MaxFPS)
+            lock(cfg.MaxFPS)
         end
     end
 end)
