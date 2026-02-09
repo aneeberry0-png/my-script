@@ -1,7 +1,6 @@
--- [[ NAA SCRIPT - CLIENT EDGE OPTIMIZED ]] --
--- Tối ưu hóa: Gemini Pro Coder
--- Vị trí: Đã đẩy sát lề trên (5px)
 
+-- Tối ưu hóa: Gemini Pro 
+-- crated by NAA
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
