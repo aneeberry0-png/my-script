@@ -1,11 +1,17 @@
--- [[ THIẾT LẬP HỆ THỐNG ]] --
-local cfg = getgenv().Config
-if cfg and cfg.MaxFPS then 
-    local setCap = setfpscap or set_fps_cap or setfps
-    if setCap then setCap(cfg.MaxFPS) end 
+local function setFPS(cap)
+    local f = setfpscap or set_fps_cap or setfps
+    if f then f(cap) end
 end
 
--- Thông báo Load
+task.spawn(function()
+    while task.wait(1) do
+        local cfg = getgenv().Config
+        if cfg and cfg.MaxFPS then
+            setFPS(cfg.MaxFPS)
+        end
+    end
+end)
+
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Naa Script",
     Text = "Created by Naa",
@@ -52,12 +58,10 @@ local function k(id, pos, size, rot, anchor)
     return o
 end
 
--- [ TRANG TRÍ ] --
 local x = k("110573798159093", UDim2.new(0, -5, 0.5, 0), UDim2.new(0, 35, 0, 35), 0, Vector2.new(1, 0.5))
 k("84295531111003", UDim2.new(0, 15, 0, -18), UDim2.new(0, 40, 0, 40), -10)
 k("117246725721218", UDim2.new(1, -55, 0, -18), UDim2.new(0, 40, 0, 40), 10)
 
--- CÁI NƠ: Dịch sang trái 5px (-5) và xuống dưới 2px (2)
 local No = k("113168576617719", UDim2.new(1, -5, 1, 2), UDim2.new(0, 35, 0, 35), 15, Vector2.new(0.5, 0.5))
 
 local r = 0
@@ -73,7 +77,6 @@ R.RenderStepped:Connect(function()
         f, l = 0, tick()
     end
     x.Position = UDim2.new(0, -5, 0.5, math.sin(tick() * 3) * 3)
-    -- Chuyển động đung đưa cho nơ
     No.Rotation = 15 + math.sin(tick() * 4) * 10
 end)
 
