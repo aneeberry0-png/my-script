@@ -1,5 +1,29 @@
-	local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
+-- [[ PHẦN 1: CẤU HÌNH (CONFIG) - MÀU GỐC ]] --
+getgenv().Config = {
+    -- [ĐÃ CHỈNH VỀ MÀU GỐC] 
+    -- Màu 1: Hồng phấn nhạt | Màu 2: Trắng
+    BackgroundColors = {"#FFF0F5", "#FFFFFF", "#FFF0F5"}, 
+    
+    -- Màu viền (Border) gốc
+    BorderColors = {"#FFB4D2", "#FFFFFF"}, 
 
+    -- Cấu hình Icon
+    ShowDecals = true,
+    DecalSize = 25,
+    CustomIcons = {
+        "99621050786909", "132594641536971", "102946999622375", "125751906521282"
+    },
+
+    -- Tốc độ & Kích thước
+    AuraSpeed = 5.6,
+    SpiralSpeed = 5.7,
+    Radius = 600,
+    RotationSpeed = 9,
+    MaxFPS = 60 
+}
+
+-- [[ PHẦN 2: SOURCE CODE (ĐÃ FIX CHUẨN MÀU GỐC) ]] --
+local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
 
 local function set_fps(cap)
     local setter = setfpscap or set_fps_cap or setfps or (fluxus and fluxus.set_fps_cap)
@@ -13,8 +37,8 @@ task.spawn(function()
     end
 end)
 
-if getgenv().kc then pcall(function() getgenv().kc:Destroy() end) end
-
+-- Xóa UI cũ
+if getgenv().kc then pcall(function() getgenv().kc:Destroy(); getgenv().kc = nil end) end
 
 local g = Instance.new("ScreenGui")
 g.Name = "Naa_Script_UI_" .. math.random(100, 999)
@@ -23,12 +47,11 @@ pcall(function() g.Parent = CoreGui end)
 if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 getgenv().kc = g
 
-
 local m = Instance.new("Frame", g)
 m.BackgroundColor3, m.Position, m.Size, m.AnchorPoint = Color3.new(1, 1, 1), UDim2.new(0.5, 0, 0, -100), UDim2.new(0, 270, 0, 32), Vector2.new(0.5, 0)
 Instance.new("UICorner", m).CornerRadius = UDim.new(1, 0)
 
-
+-- Gradient mặc định ban đầu
 local bgGradient = Instance.new("UIGradient", m)
 bgGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 240, 245)),
@@ -47,12 +70,13 @@ t.Thickness, t.Color = 0.5, Color3.fromRGB(120, 60, 80)
 local d, e = Instance.new("UIGradient", i), Instance.new("UIGradient", u)
 
 local function FH(h, def)
-    if not h or h == "" then return def end
+    if type(h) ~= "string" or h == "" then return def end
     h = h:gsub("#","")
-    local success, res = pcall(function() return Color3.fromRGB(tonumber("0x"..h:sub(1,2)), tonumber("0x"..h:sub(3,4)), tonumber("0x"..h:sub(5,6))) end)
+    local success, res = pcall(function() 
+        return Color3.fromRGB(tonumber("0x"..h:sub(1,2)), tonumber("0x"..h:sub(3,4)), tonumber("0x"..h:sub(5,6))) 
+    end)
     return success and res or def
 end
-
 
 local function k(id, pos, size, rot, anchor)
     local o = Instance.new("ImageLabel", m)
@@ -62,7 +86,6 @@ local function k(id, pos, size, rot, anchor)
 end
 
 local x = k("110573798159093", UDim2.new(0, -5, 0.5, 0), UDim2.new(0, 35, 0, 35), 0, Vector2.new(1, 0.5))
-
 local tai_trai = k("84295531111003", UDim2.new(0, 15, 0, -18), UDim2.new(0, 40, 0, 40), -10)
 local tai_phai = k("117246725721218", UDim2.new(1, -55, 0, -18), UDim2.new(0, 40, 0, 40), 10)
 local No = k("113168576617719", UDim2.new(1, -5, 1, 2), UDim2.new(0, 35, 0, 35), 15, Vector2.new(0.5, 0.5))
@@ -81,14 +104,23 @@ RunService.RenderStepped:Connect(function()
     f = f + 1
     local cfg = getgenv().Config or {}
     
-   
     r = (r + (cfg.RotationSpeed or 1.0)) % 360
     d.Rotation, e.Rotation = r, r
-    
-    
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
     
-   
+    -- [[ FIX: Dùng màu gốc làm mặc định nếu không có config ]]
+    local bgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF", "#FFF0F5"} -- Màu gốc đây
+    
+    local cBg1 = FH(bgc[1], Color3.fromRGB(255, 240, 245)) -- Màu gốc
+    local cBg2 = FH(bgc[2], Color3.fromRGB(255, 255, 255)) -- Màu gốc
+    local cBg3 = FH(bgc[3] or bgc[1], cBg1) 
+
+    bgGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, cBg1),
+        ColorSequenceKeypoint.new(0.5, cBg2),
+        ColorSequenceKeypoint.new(1, cBg3)
+    })
+
     local bc = cfg.BorderColors or {"#FFB4D2", "#FFFFFF"}
     local c1, c2 = FH(bc[1], Color3.fromRGB(255, 180, 210)), FH(bc[2], Color3.new(1, 1, 1))
     local p = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
@@ -101,11 +133,8 @@ RunService.RenderStepped:Connect(function()
         f, l = 0, tick()
     end
     
-   
     x.Position = UDim2.new(0, -5, 0.5, math.sin(tick() * 2) * 2)
     No.Rotation = 15 + math.sin(tick() * 2) * 5
-    
-    
     tai_trai.Rotation = -10 + math.sin(tick() * 3) * 5
     tai_phai.Rotation = 10 - math.sin(tick() * 3) * 5
     
