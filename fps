@@ -1,28 +1,23 @@
--- [[ PHẦN 1: CẤU HÌNH (CONFIG) - MÀU GỐC ]] --
+-- [[ PHẦN 1: CONFIG CỦA BẠN ]] --
 getgenv().Config = {
-    -- [ĐÃ CHỈNH VỀ MÀU GỐC] 
-    -- Màu 1: Hồng phấn nhạt | Màu 2: Trắng
-    BackgroundColors = {"#FFF0F5", "#FFFFFF", "#FFF0F5"}, 
+    BackgroundColors = {"#FFF0F5", "#FFFFFF"}, 
+    BorderColors = {"#FFB4D2", "#FFFFFF"},
     
-    -- Màu viền (Border) gốc
-    BorderColors = {"#FFB4D2", "#FFFFFF"}, 
-
-    -- Cấu hình Icon
-    ShowDecals = true,
-    DecalSize = 25,
-    CustomIcons = {
+    ShowDecals = true,           
+    DecalSize = 25,              
+    CustomIcons = {              
         "99621050786909", "132594641536971", "102946999622375", "125751906521282"
     },
 
-    -- Tốc độ & Kích thước
-    AuraSpeed = 5.6,
-    SpiralSpeed = 5.7,
-    Radius = 600,
-    RotationSpeed = 9,
-    MaxFPS = 60 
+    -- Chỉnh các thông số này để thấy sự thay đổi rõ rệt:
+    AuraSpeed = 0.8,             -- Tăng lên 5-10 nếu muốn quay tít mù
+    SpiralSpeed = 1.0,           
+    Radius = 155,                
+    RotationSpeed = 1.0,         
+    MaxFPS = 60
 }
 
--- [[ PHẦN 2: SOURCE CODE (ĐÃ FIX CHUẨN MÀU GỐC) ]] --
+-- [[ PHẦN 2: SOURCE CODE ĐÃ FIX LỖI KHÔNG NHẬN CONFIG ]] --
 local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
 
 local function set_fps(cap)
@@ -37,7 +32,6 @@ task.spawn(function()
     end
 end)
 
--- Xóa UI cũ
 if getgenv().kc then pcall(function() getgenv().kc:Destroy(); getgenv().kc = nil end) end
 
 local g = Instance.new("ScreenGui")
@@ -51,14 +45,7 @@ local m = Instance.new("Frame", g)
 m.BackgroundColor3, m.Position, m.Size, m.AnchorPoint = Color3.new(1, 1, 1), UDim2.new(0.5, 0, 0, -100), UDim2.new(0, 270, 0, 32), Vector2.new(0.5, 0)
 Instance.new("UICorner", m).CornerRadius = UDim.new(1, 0)
 
--- Gradient mặc định ban đầu
 local bgGradient = Instance.new("UIGradient", m)
-bgGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 240, 245)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 240, 245))
-})
-
 local u = Instance.new("UIStroke", m)
 u.Thickness, u.Color = 2.5, Color3.new(1, 1, 1)
 
@@ -72,9 +59,7 @@ local d, e = Instance.new("UIGradient", i), Instance.new("UIGradient", u)
 local function FH(h, def)
     if type(h) ~= "string" or h == "" then return def end
     h = h:gsub("#","")
-    local success, res = pcall(function() 
-        return Color3.fromRGB(tonumber("0x"..h:sub(1,2)), tonumber("0x"..h:sub(3,4)), tonumber("0x"..h:sub(5,6))) 
-    end)
+    local success, res = pcall(function() return Color3.fromRGB(tonumber("0x"..h:sub(1,2)), tonumber("0x"..h:sub(3,4)), tonumber("0x"..h:sub(5,6))) end)
     return success and res or def
 end
 
@@ -98,27 +83,24 @@ for j, id in ipairs(ids) do
     table.insert(ics, {obj = o, off = (j/#ids)*(math.pi*2), g = (j%2==0) and 1 or -1, defaultId = id})
 end
 
-local s, f, l, r = tick(), 0, tick(), 0
+local s, f, l, rot_val = tick(), 0, tick(), 0
 
 RunService.RenderStepped:Connect(function()
     f = f + 1
     local cfg = getgenv().Config or {}
     
-    r = (r + (cfg.RotationSpeed or 1.0)) % 360
-    d.Rotation, e.Rotation = r, r
+    -- [FIX CHUẨN]: Lấy đúng RotationSpeed từ Config
+    rot_val = (rot_val + (cfg.RotationSpeed or 1.0)) % 360
+    d.Rotation, e.Rotation = rot_val, rot_val
+    
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
     
-    -- [[ FIX: Dùng màu gốc làm mặc định nếu không có config ]]
-    local bgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF", "#FFF0F5"} -- Màu gốc đây
-    
-    local cBg1 = FH(bgc[1], Color3.fromRGB(255, 240, 245)) -- Màu gốc
-    local cBg2 = FH(bgc[2], Color3.fromRGB(255, 255, 255)) -- Màu gốc
-    local cBg3 = FH(bgc[3] or bgc[1], cBg1) 
-
+    local bgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
+    local cBg1, cBg2 = FH(bgc[1], Color3.fromRGB(255, 240, 245)), FH(bgc[2], Color3.fromRGB(255, 255, 255))
     bgGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, cBg1),
         ColorSequenceKeypoint.new(0.5, cBg2),
-        ColorSequenceKeypoint.new(1, cBg3)
+        ColorSequenceKeypoint.new(1, cBg1)
     })
 
     local bc = cfg.BorderColors or {"#FFB4D2", "#FFFFFF"}
@@ -145,8 +127,15 @@ RunService.RenderStepped:Connect(function()
             local sz = cfg.DecalSize or 25
             it.obj.Size = UDim2.new(0, sz, 0, sz)
             it.obj.Image = "rbxthumb://type=Asset&id="..(cfg.CustomIcons and cfg.CustomIcons[j] or it.defaultId).."&w=420&h=420"
-            local oa, wa = (tick() * (cfg.AuraSpeed or 0.8)) + it.off, (tick() * (cfg.SpiralSpeed or 1.0))
-            it.obj.Position = UDim2.new(0.5, math.cos(oa)*(cfg.Radius or 155), 0.5, (math.sin(oa)*30)+(math.sin(wa)*25*it.g))
+            
+            -- [FIX CHUẨN]: Sử dụng AuraSpeed và SpiralSpeed từ Config
+            local a_spd = cfg.AuraSpeed or 0.8
+            local s_spd = cfg.SpiralSpeed or 1.0
+            local rad = cfg.Radius or 155
+            
+            local oa = (tick() * a_spd) + it.off
+            local wa = (tick() * s_spd)
+            it.obj.Position = UDim2.new(0.5, math.cos(oa)*rad, 0.5, (math.sin(oa)*30)+(math.sin(wa)*25*it.g))
         end
     end
 end)
