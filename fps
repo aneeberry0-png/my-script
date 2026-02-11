@@ -1,25 +1,6 @@
--- [[ PHẦN 1: CONFIG CỦA BẠN ]] --
-getgenv().Config = {
-    BackgroundColors = {"#FFF0F5", "#FFFFFF"}, 
-    BorderColors = {"#FFB4D2", "#FFFFFF"},
-    
-    ShowDecals = true,           
-    DecalSize = 25,              
-    CustomIcons = {              
-        "99621050786909", "132594641536971", "102946999622375", "125751906521282"
-    },
-
-    -- Chỉnh các thông số này để thấy sự thay đổi rõ rệt:
-    AuraSpeed = 0.8,             -- Tăng lên 5-10 nếu muốn quay tít mù
-    SpiralSpeed = 1.0,           
-    Radius = 155,                
-    RotationSpeed = 1.0,         
-    MaxFPS = 60
-}
-
--- [[ PHẦN 2: SOURCE CODE ĐÃ FIX LỖI KHÔNG NHẬN CONFIG ]] --
 local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
 
+-- 1. HÀM LOCK FPS
 local function set_fps(cap)
     local setter = setfpscap or set_fps_cap or setfps or (fluxus and fluxus.set_fps_cap)
     if setter then pcall(function() setter(cap) end) end
@@ -32,8 +13,9 @@ task.spawn(function()
     end
 end)
 
-if getgenv().kc then pcall(function() getgenv().kc:Destroy(); getgenv().kc = nil end) end
+if getgenv().kc then pcall(function() getgenv().kc:Destroy() end) end
 
+-- 2. TẠO GUI
 local g = Instance.new("ScreenGui")
 g.Name = "Naa_Script_UI_" .. math.random(100, 999)
 g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -41,11 +23,32 @@ pcall(function() g.Parent = CoreGui end)
 if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 getgenv().kc = g
 
+-- 3. MAIN FRAME (NỀN GỢN SÓNG)
 local m = Instance.new("Frame", g)
 m.BackgroundColor3, m.Position, m.Size, m.AnchorPoint = Color3.new(1, 1, 1), UDim2.new(0.5, 0, 0, -100), UDim2.new(0, 270, 0, 32), Vector2.new(0.5, 0)
 Instance.new("UICorner", m).CornerRadius = UDim.new(1, 0)
 
+-- Hàm hỗ trợ đổi màu Hex
+local function FH(h, def)
+    if not h or h == "" then return def end
+    h = h:gsub("#","")
+    local success, res = pcall(function() return Color3.fromRGB(tonumber("0x"..h:sub(1,2)), tonumber("0x"..h:sub(3,4)), tonumber("0x"..h:sub(5,6))) end)
+    return success and res or def
+end
+
+-- [PHẦN CUSTOM NỀN - FIX LỖI REVERT]
 local bgGradient = Instance.new("UIGradient", m)
+local cfg = getgenv().Config or {}
+local bgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
+-- Áp dụng màu ngay lập tức để không bị trắng lúc mới hiện
+local initC1 = FH(bgc[1], Color3.fromRGB(255, 240, 245))
+local initC2 = FH(bgc[2], Color3.fromRGB(255, 255, 255))
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, initC1),
+    ColorSequenceKeypoint.new(0.5, initC2),
+    ColorSequenceKeypoint.new(1, initC1)
+})
+
 local u = Instance.new("UIStroke", m)
 u.Thickness, u.Color = 2.5, Color3.new(1, 1, 1)
 
@@ -56,13 +59,7 @@ t.Thickness, t.Color = 0.5, Color3.fromRGB(120, 60, 80)
 
 local d, e = Instance.new("UIGradient", i), Instance.new("UIGradient", u)
 
-local function FH(h, def)
-    if type(h) ~= "string" or h == "" then return def end
-    h = h:gsub("#","")
-    local success, res = pcall(function() return Color3.fromRGB(tonumber("0x"..h:sub(1,2)), tonumber("0x"..h:sub(3,4)), tonumber("0x"..h:sub(5,6))) end)
-    return success and res or def
-end
-
+-- 4. ICONS (TAI MÈO)
 local function k(id, pos, size, rot, anchor)
     local o = Instance.new("ImageLabel", m)
     o.BackgroundTransparency, o.Position, o.Size, o.Image, o.Rotation = 1, pos, size, "rbxthumb://type=Asset&id="..id.."&w=420&h=420", rot or 0
@@ -83,26 +80,32 @@ for j, id in ipairs(ids) do
     table.insert(ics, {obj = o, off = (j/#ids)*(math.pi*2), g = (j%2==0) and 1 or -1, defaultId = id})
 end
 
-local s, f, l, rot_val = tick(), 0, tick(), 0
+-- 5. LOGIC CẬP NHẬT
+local s, f, l, r = tick(), 0, tick(), 0
 
 RunService.RenderStepped:Connect(function()
     f = f + 1
     local cfg = getgenv().Config or {}
     
-    -- [FIX CHUẨN]: Lấy đúng RotationSpeed từ Config
-    rot_val = (rot_val + (cfg.RotationSpeed or 1.0)) % 360
-    d.Rotation, e.Rotation = rot_val, rot_val
+    -- Xoay dải màu viền
+    r = (r + (cfg.RotationSpeed or 1.0)) % 360
+    d.Rotation, e.Rotation = r, r
     
+    -- Hiệu ứng gợn sóng nền
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
     
-    local bgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
-    local cBg1, cBg2 = FH(bgc[1], Color3.fromRGB(255, 240, 245)), FH(bgc[2], Color3.fromRGB(255, 255, 255))
+    -- [CẬP NHẬT MÀU NỀN TỪ CONFIG]
+    local currentBgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
+    local cBg1 = FH(currentBgc[1], Color3.fromRGB(255, 240, 245))
+    local cBg2 = FH(currentBgc[2], Color3.fromRGB(255, 255, 255))
+    
     bgGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, cBg1),
         ColorSequenceKeypoint.new(0.5, cBg2),
         ColorSequenceKeypoint.new(1, cBg1)
     })
 
+    -- Màu sắc viền
     local bc = cfg.BorderColors or {"#FFB4D2", "#FFFFFF"}
     local c1, c2 = FH(bc[1], Color3.fromRGB(255, 180, 210)), FH(bc[2], Color3.new(1, 1, 1))
     local p = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
@@ -127,15 +130,8 @@ RunService.RenderStepped:Connect(function()
             local sz = cfg.DecalSize or 25
             it.obj.Size = UDim2.new(0, sz, 0, sz)
             it.obj.Image = "rbxthumb://type=Asset&id="..(cfg.CustomIcons and cfg.CustomIcons[j] or it.defaultId).."&w=420&h=420"
-            
-            -- [FIX CHUẨN]: Sử dụng AuraSpeed và SpiralSpeed từ Config
-            local a_spd = cfg.AuraSpeed or 0.8
-            local s_spd = cfg.SpiralSpeed or 1.0
-            local rad = cfg.Radius or 155
-            
-            local oa = (tick() * a_spd) + it.off
-            local wa = (tick() * s_spd)
-            it.obj.Position = UDim2.new(0.5, math.cos(oa)*rad, 0.5, (math.sin(oa)*30)+(math.sin(wa)*25*it.g))
+            local oa, wa = (tick() * (cfg.AuraSpeed or 0.8)) + it.off, (tick() * (cfg.SpiralSpeed or 1.0))
+            it.obj.Position = UDim2.new(0.5, math.cos(oa)*(cfg.Radius or 155), 0.5, (math.sin(oa)*30)+(math.sin(wa)*25*it.g))
         end
     end
 end)
