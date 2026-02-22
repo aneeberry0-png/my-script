@@ -1,0 +1,24 @@
+local sea1ID = 85211729168715
+local sea1ID2 = 2753915549
+
+local sea2ID = 79091703265657
+local sea2ID2 = 4442272183
+
+local sea3ID = 7449423635
+local sea3ID2 = 100117331123089
+
+return function(sections)
+    local placeId = game.PlaceId
+    if placeId == sea1ID or placeId == sea1ID2 then
+        local FruitPage1 = loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/check-fruit123(c%E1%BA%A3%203%20file%20%C4%91%E1%BB%81u%20c%C3%B9ng%201%20nd%20n%C3%AAn%20g%E1%BB%99p)"))()
+        FruitPage1(sections)
+    elseif placeId == sea2ID or placeId == sea2ID2 then
+        local FruitPage2 = loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/check-fruit123(c%E1%BA%A3%203%20file%20%C4%91%E1%BB%81u%20c%C3%B9ng%201%20nd%20n%C3%AAn%20g%E1%BB%99p)"))()
+        FruitPage2(sections)
+    elseif placeId == sea3ID or placeId == sea3ID2 then
+        local FruitPage3 = loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/check-fruit123(c%E1%BA%A3%203%20file%20%C4%91%E1%BB%81u%20c%C3%B9ng%201%20nd%20n%C3%AAn%20g%E1%BB%99p)"))()
+        FruitPage3(sections)
+    else
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/NONE/refs/heads/main/NONE"))()
+    end
+end
