@@ -1,0 +1,80 @@
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- ===== CONFIG =====
+local LUNGE_SPEED = 400
+local ENEMY_FOLDER_NAME = "Enemies" 
+local MAX_DISTANCE = 1000 -- Giới hạn khoảng cách quét quái
+-- ===================
+
+local movementToken = 0
+
+local function getHRP()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
+local function stopMovement()
+    movementToken += 1
+end
+
+local function lungeTo(targetPos)
+    local hrp = getHRP()
+    local myToken = movementToken
+    local startPos = hrp.Position
+    local delta = targetPos - startPos
+    local dist = delta.Magnitude
+    if dist < 0.5 then return end
+
+    local dir = delta.Unit
+    local duration = dist / LUNGE_SPEED
+    local elapsed = 0
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function(dt)
+        if myToken ~= movementToken then
+            conn:Disconnect()
+            return
+        end
+        elapsed += dt
+        local alpha = math.clamp(elapsed / duration, 0, 1)
+        hrp.CFrame = CFrame.new(startPos + dir * (dist * alpha))
+        if alpha >= 1 then
+            conn:Disconnect()
+        end
+    end)
+    
+    -- Đợi lướt xong đoạn này để lướt đoạn tiếp
+    repeat task.wait() until elapsed >= duration or myToken ~= movementToken
+end
+
+-- Vòng lặp gom quái tốc độ bàn thờ (Có giới hạn 1000 studs)
+task.spawn(function()
+    while true do
+        local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
+        local myHRP = getHRP() -- Lấy vị trí hiện tại của mình để làm tâm đo
+
+        if folder and myHRP then
+            local enemies = folder:GetChildren()
+            
+            for _, enemy in pairs(enemies) do
+                local eHRP = enemy:FindFirstChild("HumanoidRootPart")
+                local eHum = enemy:FindFirstChild("Humanoid")
+                
+                if eHRP and eHum and eHum.Health > 0 then
+                    -- Đo khoảng cách từ mình tới con quái
+                    local dist = (eHRP.Position - myHRP.Position).Magnitude
+                    
+                    -- NẾU TRONG TẦM 1000 STUDS THÌ MỚI LƯỚT
+                    if dist <= MAX_DISTANCE then
+                        stopMovement()
+                        lungeTo(eHRP.Position)
+                    end
+                end
+            end
+        end
+        -- Nếu không có quái nào trong tầm 1000, vòng lặp chạy trơn tuột xuống đây và nghỉ
+        task.wait() 
+    end
+end)
