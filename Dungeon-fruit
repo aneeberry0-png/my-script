@@ -1,0 +1,58 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/attack%20dungeon"))()
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+
+-- Hàm để chọn Fruit (Ô số 2)
+function equipFruitSlot()
+    local character = localPlayer.Character
+    local backpack = localPlayer.Backpack
+    
+    if character then
+        -- Kiểm tra xem trên tay đã cầm Tool nào chưa
+        local currentlyEquipped = character:FindFirstChildOfClass("Tool")
+        
+        -- Nếu chưa cầm hoặc cái đang cầm không phải Fruit thì mới chọn
+        -- Ở đây mình tìm item dựa trên ToolTip là "Blox Fruit" (chuẩn của game)
+        for _, item in pairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item.ToolTip == "Melee" then
+                character.Humanoid:EquipTool(item)
+                break
+            end
+        end
+    end
+end
+
+-- Chạy vòng lặp kiểm tra mỗi 1 giây để đảm bảo luôn cầm Fruit
+task.spawn(function()
+    while task.wait(0.1) do
+        equipFruitSlot()
+    end
+end)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message%20(7).txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message.txt"))()
+
+local Noclip = nil
+local Clip = nil
+
+function noclip()
+	Clip = false
+	local function Nocl()
+		if Clip == false and game.Players.LocalPlayer.Character ~= nil then
+			for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+				if v:IsA('BasePart') and v.CanCollide and v.Name ~= floatName then
+					v.CanCollide = false
+				end
+			end
+		end
+		wait(0.21) -- basic optimization
+	end
+	Noclip = game:GetService('RunService').Stepped:Connect(Nocl)
+end
+
+function clip()
+	if Noclip then Noclip:Disconnect() end
+	Clip = true
+end
+
+noclip() -- to toggle noclip() and clip()
+
