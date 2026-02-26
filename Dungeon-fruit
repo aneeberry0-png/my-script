@@ -14,7 +14,7 @@ function equipFruitSlot()
         -- Nếu chưa cầm hoặc cái đang cầm không phải Fruit thì mới chọn
         -- Ở đây mình tìm item dựa trên ToolTip là "Blox Fruit" (chuẩn của game)
         for _, item in pairs(backpack:GetChildren()) do
-            if item:IsA("Tool") and item.ToolTip == "Melee" then
+            if item:IsA("Tool") and item.ToolTip == "Blox Fruit" then
                 character.Humanoid:EquipTool(item)
                 break
             end
