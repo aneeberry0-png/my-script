@@ -1,0 +1,257 @@
+getgenv().Configs = {
+  ["Account Join"] = {
+   "sdc1gscr",
+   "gau_neowo",
+   "wkwttpnfcsq"
+   }, -- account join
+  ["Account Join Raid"] = {
+  "ann_2k11x" -- account join first place raid
+  },
+  ["Select Difficulty"] = "Normal" -- "Hard" , "Challenge" , "Normal"
+} 
+local CFG = getgenv().Configs
+local ply = game.Players
+local plr = ply.LocalPlayer
+    while not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") do
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", "Marines")
+        wait()
+    end
+local StatusGui = Instance.new("ScreenGui")
+StatusGui.Name = "StatusOverlay"
+StatusGui.Parent = game:GetService("CoreGui")
+StatusGui.ResetOnSpawn = false
+
+local StatusHolder = Instance.new("Frame")
+StatusHolder.Name = "StatusHolder"
+StatusHolder.Parent = StatusGui
+StatusHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+StatusHolder.BackgroundTransparency = 1
+StatusHolder.Position = UDim2.new(0.5, 0, 0.05, 0)
+StatusHolder.Size = UDim2.new(0, 320, 0, 88)
+
+local StatusMain = Instance.new("Frame")
+StatusMain.Name = "Main"
+StatusMain.Parent = StatusHolder
+StatusMain.AnchorPoint = Vector2.new(0.5, 0.5)
+StatusMain.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+StatusMain.BackgroundTransparency = 0.5
+StatusMain.Position = UDim2.new(0.5, 0, 0.5, 0)
+StatusMain.Size = UDim2.new(1, 0, 1, 0)
+
+local StatusStroke = Instance.new("UIStroke")
+StatusStroke.Parent = StatusMain
+StatusStroke.Color = Color3.fromRGB(138, 43, 226) 
+StatusStroke.Thickness = 2.5
+
+StatusItemLabel = Instance.new("TextLabel")
+StatusItemLabel.Name = "StatusItem"
+StatusItemLabel.Parent = StatusMain
+StatusItemLabel.AnchorPoint = Vector2.new(0.5, 0)
+StatusItemLabel.BackgroundTransparency = 1
+StatusItemLabel.Position = UDim2.new(0.5, 0, 0, 10)
+StatusItemLabel.Size = UDim2.new(0, 300, 0, 18)
+StatusItemLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+StatusItemLabel.Text = "Status Script : Loading.... "
+StatusItemLabel.TextColor3 = Color3.fromRGB(0, 191, 255)
+StatusItemLabel.TextSize = 16
+
+StatusFarmLabel = Instance.new("TextLabel")
+StatusFarmLabel.Name = "StatusFarm"
+StatusFarmLabel.Parent = StatusMain
+StatusFarmLabel.AnchorPoint = Vector2.new(0.5, 0)
+StatusFarmLabel.BackgroundTransparency = 1
+StatusFarmLabel.Position = UDim2.new(0.5, 0, 0, 35)
+StatusFarmLabel.Size = UDim2.new(0, 300, 0, 18)
+StatusFarmLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+StatusFarmLabel.Text = "Status Farm: N/A"
+StatusFarmLabel.TextColor3 = Color3.fromRGB(0, 191, 255)
+StatusFarmLabel.TextSize = 16
+
+StatusMobLabel = Instance.new("TextLabel")
+StatusMobLabel.Name = "StatusMob"
+StatusMobLabel.Parent = StatusMain
+StatusMobLabel.AnchorPoint = Vector2.new(0.5, 0)
+StatusMobLabel.BackgroundTransparency = 1
+StatusMobLabel.Position = UDim2.new(0.5, 0, 0, 60)
+StatusMobLabel.Size = UDim2.new(0, 300, 0, 18)
+StatusMobLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+StatusMobLabel.Text = "Farm Mob: N/A"
+StatusMobLabel.TextColor3 = Color3.fromRGB(0, 191, 255)
+StatusMobLabel.TextSize = 16
+
+
+_G.JoinDungeon = false
+_G.AccjoinRaid = false
+_G.AccStartRaid = false
+_G.SelectDiff = CFG["Select Difficulty"]
+_G.AccountJoin = false
+local AccjoinRaids = CFG["Account Join Raid"]
+
+-- ✅ Khai báo biến dùng chung ra ngoài
+local DungeonRadius = 10
+local Dungeons = {
+    {name = "Dungeon 1", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
+    {name = "Dungeon 2", center = Vector3.new(-360.278137, 232.758224, -447.755859)},
+    {name = "Dungeon 3", center = Vector3.new(-231.965485, 232.758224, -433.251038)},
+}
+
+local function tp(cframe)
+    local character = plr.Character
+    if not character then return end
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if root then
+        root.CFrame = cframe
+    end
+end
+
+local function getPlayersInDungeon(center)
+    local playersInside = {}
+    for _, player in pairs(game.Players:GetPlayers()) do
+        local char = player.Character
+        if char then
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                local dist = (root.Position - center).Magnitude
+                if dist <= DungeonRadius then
+                    table.insert(playersInside, player.Name)
+                end
+            end
+        end
+    end
+    return playersInside
+end
+
+
+_G.FoundDungeon = nil  -- Chỉ lưu tên dungeon
+
+local function JoinDungeonTeleport()
+    while task.wait(0.5) do
+        if _G.AccjoinRaid then
+            local joined = false
+
+            for _, dungeon in pairs(Dungeons) do
+                local players = getPlayersInDungeon(dungeon.center)
+
+                if #players == 0 then
+                    print("✅ " .. dungeon.name .. " đang trống → Teleport vào!")
+                    StatusFarmLabel.Text = "Status Farm: Đang vào " .. dungeon.name
+                    
+                    -- ✅ TẮT FLAG NGAY LẬP TỨC
+                    _G.AccjoinRaid = false
+                    _G.FoundDungeon = dungeon.name
+                    
+                    tp(CFrame.new(dungeon.center + Vector3.new(0, 3, 0)))
+                    
+                    -- ✅ ĐỢI 2 GIÂY ĐỂ CHẮC CHẮN ĐÃ VÀO
+                    task.wait(2)
+                    
+                    _G.StartDuggeon = true
+                    joined = true
+                    StatusFarmLabel.Text = " Vô thành công " .. dungeon.name
+                    break -- Break khỏi vòng for
+
+                else
+                    print("❌ " .. dungeon.name .. " đã có " .. #players .. " người")
+                end
+            end
+
+            if not joined then
+                print("⏳ Tất cả Dungeon đều có người, thử lại...")
+                StatusFarmLabel.Text = "Status Farm: Chờ dungeon trống..."
+            end
+            
+            -- ✅ QUAN TRỌNG: BREAK KHỎI VÒNG WHILE NẾU ĐÃ JOIN THÀNH CÔNG
+            if joined then
+                
+                break -- Thoát khỏi vòng while hoàn toàn
+
+            end
+        end
+    end
+end
+local function Accountteleaccjoin()
+    while task.wait(0.5) do
+        if _G.AccountJoin then
+            print("Đang teleport vào acc join...")
+            StatusFarmLabel.Text = "Status Farm: Teleport vào acc join..."
+            tp(game:GetService("Players").AccjoinRaids.Character.HumanoidRootPart.CFrame)
+            _G.StartDuggeon = true
+        end
+    end
+end
+
+local function StartDungeon()
+    while task.wait(0.5) do
+        if _G.StartDuggeon then
+            print("Starting dungeon...")
+            StatusFarmLabel.Text = "Status Farm: Bắt đầu dungeon..."
+
+            local dungeon_teleporter = nil
+            if _G.FoundDungeon == "Dungeon 1" then 
+                dungeon_teleporter = "DUNGEON_TELEPORTER1"
+            elseif _G.FoundDungeon == "Dungeon 2" then
+                dungeon_teleporter = "DUNGEON_TELEPORTER2"
+            elseif _G.FoundDungeon == "Dungeon 3" then
+                dungeon_teleporter = "DUNGEON_TELEPORTER3"
+            end
+
+            if dungeon_teleporter then
+                
+                workspace:WaitForChild("Map"):WaitForChild("Simulation Hub"):WaitForChild("Pads")
+                    :WaitForChild(dungeon_teleporter):WaitForChild("DungeonSettingsChanged")
+                    :FireServer("Difficulty", CFG["Select Difficulty"])
+                
+                task.wait(0.5)
+                
+               
+                workspace:WaitForChild("Map"):WaitForChild("Simulation Hub"):WaitForChild("Pads")
+                    :WaitForChild(dungeon_teleporter):WaitForChild("DungeonSettingsChanged")
+                    :FireServer("Start")
+                
+                _G.StartDuggeon = false  
+            else
+                print("Lỗi: Không xác định được dungeon đã vào.")
+            end
+        end
+    end
+end
+
+local function isInConfig(name, configTable)
+    if type(configTable) == "table" then
+        for _, v in pairs(configTable) do
+            if v == name then return true end
+        end
+    elseif type(configTable) == "string" then
+        return name == configTable
+    end
+    return false
+end
+
+local function joinDungeon()
+    while task.wait(0.1) do
+        local playername = plr.Name
+
+        local AccJoinS = isInConfig(playername, CFG["Account Join Raid"])
+        local AccJoin  = isInConfig(playername, CFG["Account Join"])
+
+        if AccJoinS then
+            print("Account Join Raid : " .. playername)
+            StatusMobLabel.Text = "Your Account Status : Join Dungeon Teleport"
+            _G.AccjoinRaid = true
+
+        elseif AccJoin then
+            print("Account Join : " .. playername)
+            StatusMobLabel.Text = "Your Account Status : Join Account"
+            _G.AccountJoin = true
+
+        else
+            print("Your account not have in config")
+        end
+    end
+end
+
+
+task.spawn(JoinDungeonTeleport)
+task.spawn(joinDungeon)
+task.spawn(Accountteleaccjoin)  
+task.spawn(StartDungeon)  
