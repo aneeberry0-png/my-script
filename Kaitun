@@ -274,3 +274,65 @@ elseif myRole == "Account Join" then
 else
     warn("Account not in Config. Script Stopped.")
 end
+-- Khai báo biến (Khai báo ở đây để script bắt đầu chạy)
+_G.RaceClickAutov3 = true
+_G.RaceClickAutov4 = true
+Boud = true
+
+-- Các biến hệ thống
+local ply = game.Players
+local plr = ply.LocalPlayer
+local replicated = game:GetService("ReplicatedStorage")
+
+-- Hàm bổ trợ (nếu script gốc của bạn dùng Useskills)
+local function Useskills(arg1, key)
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
+    wait(0.1)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
+end
+
+---
+
+-- Auto Race V3
+spawn(function()
+    while task.wait(0.2) do
+        if _G.RaceClickAutov3 then
+            pcall(function()
+                -- Dùng FireServer để kích hoạt kỹ năng Race
+                replicated.Remotes.CommE:FireServer("ActivateAbility")
+            end)
+            -- Đợi 30s hồi chiêu để không spam lag máy
+            task.wait(30)
+        end
+    end
+end)
+
+-- Auto Race V4 (Y)
+spawn(function()
+    while task.wait(0.2) do
+        if _G.RaceClickAutov4 then
+            pcall(function()
+                local char = plr.Character
+                if char and char:FindFirstChild("RaceEnergy") then
+                    -- Nếu nộ (Energy) đầy (thường là 1 hoặc 100 tùy bản hack)
+                    if char.RaceEnergy.Value >= 1 then 
+                        Useskills("nil", "Y")
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Auto Bật Buso (Haki)
+spawn(function()
+    while task.wait(1) do
+        if Boud then
+            pcall(function()
+                if not plr.Character:FindFirstChild("HasBuso") then
+                    replicated.Remotes.CommF_:InvokeServer("Buso")
+                end
+            end)
+        end
+    end
+end)
