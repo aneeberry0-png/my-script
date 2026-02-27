@@ -1,14 +1,4 @@
-getgenv().Configs = {
-  ["Account Join"] = {
-   "sdc1gscr",
-   "ann_2k11x",
-   "wkwttpnfcsq"
-   }, -- account join
-  ["Account Join Raid"] = {
-  "e2k11x" -- account join first place raid
-  },
-  ["Select Difficulty"] = "Normal" -- "Hard" , "Challenge" , "Normal"
-} 
+
 local CFG = getgenv().Configs
 local ply = game.Players
 local plr = ply.LocalPlayer
