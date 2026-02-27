@@ -6,6 +6,7 @@ local player = Players.LocalPlayer
 local LUNGE_SPEED = 400
 local ENEMY_FOLDER_NAME = "Enemies" 
 local MAX_DISTANCE = 1000 -- Giới hạn khoảng cách quét quái
+local IGNORED_ENEMY = "Blank Buddy" -- Tên quái muốn bỏ qua
 -- ===================
 
 local movementToken = 0
@@ -59,6 +60,11 @@ task.spawn(function()
             local enemies = folder:GetChildren()
             
             for _, enemy in pairs(enemies) do
+                -- BỎ QUA "Blank Buddy"
+                if enemy.Name == IGNORED_ENEMY then
+                    continue -- Lệnh này ép vòng lặp nhảy sang con quái tiếp theo luôn
+                end
+
                 local eHRP = enemy:FindFirstChild("HumanoidRootPart")
                 local eHum = enemy:FindFirstChild("Humanoid")
                 
