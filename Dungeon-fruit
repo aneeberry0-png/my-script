@@ -29,7 +29,7 @@ task.spawn(function()
     end
 end)
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message%20(7).txt"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message.txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/attack%20fast"))()
 
 local Noclip = nil
 local Clip = nil
