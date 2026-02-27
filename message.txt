@@ -1,372 +1,375 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 
-local Player = Players.LocalPlayer
-local Modules = ReplicatedStorage:WaitForChild("Modules")
-local Net = Modules:WaitForChild("Net")
-local RegisterAttack = Net:WaitForChild("RE/RegisterAttack")
-local RegisterHit = Net:WaitForChild("RE/RegisterHit")
-local ShootGunEvent = Net:WaitForChild("RE/ShootGunEvent")
-local GunValidator = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Validator2")
-
-local LocalPlayer = Players.LocalPlayer
-local Net = require(ReplicatedStorage.Modules.Net)
-
-local Remotes = {}
-local Assets = ReplicatedStorage:WaitForChild("Assets")
-
-
--- Initialize Remotes
-for _, child in ipairs(ReplicatedStorage:WaitForChild("Remotes"):GetChildren()) do
-    if child:IsA("RemoteEvent") then
-        local id = child:GetAttribute("Id")
-        if id then
-            Remotes[id] = child
-        end
+local CFG = getgenv().Configs
+local ply = game.Players
+local plr = ply.LocalPlayer
+    while not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") do
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", "Marines")
+        wait()
     end
-end
+local StatusGui = Instance.new("ScreenGui")
+StatusGui.Name = "StatusOverlay"
+StatusGui.Parent = game:GetService("CoreGui")
+StatusGui.ResetOnSpawn = false
 
-ReplicatedStorage.Remotes.ChildAdded:Connect(function(child)
-    if child:IsA("RemoteEvent") then
-        local id = child:GetAttribute("Id")
-        if id then
-            Remotes[id] = child
-        end
-    end
-end)
+local StatusHolder = Instance.new("Frame")
+StatusHolder.Name = "StatusHolder"
+StatusHolder.Parent = StatusGui
+StatusHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+StatusHolder.BackgroundTransparency = 1
+StatusHolder.Position = UDim2.new(0.5, 0, 0.05, 0)
+StatusHolder.Size = UDim2.new(0, 320, 0, 88)
 
-local function GetClosestEnemy()
-    local character = LocalPlayer.Character
-    if not character then return nil end
-    
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return nil end
+local StatusMain = Instance.new("Frame")
+StatusMain.Name = "Main"
+StatusMain.Parent = StatusHolder
+StatusMain.AnchorPoint = Vector2.new(0.5, 0.5)
+StatusMain.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+StatusMain.BackgroundTransparency = 0.5
+StatusMain.Position = UDim2.new(0.5, 0, 0.5, 0)
+StatusMain.Size = UDim2.new(1, 0, 1, 0)
 
-    local closestEnemy = nil
-    local shortestDistance = 15 -- Max range
+local StatusStroke = Instance.new("UIStroke")
+StatusStroke.Parent = StatusMain
+StatusStroke.Color = Color3.fromRGB(138, 43, 226) 
+StatusStroke.Thickness = 2.5
 
-    for _, enemy in ipairs(workspace.Enemies.Characters:GetChildren()) do
-        local humanoid = enemy:FindFirstChild("Humanoid")
-        local enemyRoot = enemy:FindFirstChild("HumanoidRootPart")
-        
-        if humanoid and humanoid.Health > 0 and enemyRoot then
-            local distance = (rootPart.Position - enemyRoot.Position).Magnitude
-            if distance < shortestDistance then
-                closestEnemy = enemy
-                shortestDistance = distance
-            end
-        end
-    end
-    return closestEnemy
-end
+StatusItemLabel = Instance.new("TextLabel")
+StatusItemLabel.Name = "StatusItem"
+StatusItemLabel.Parent = StatusMain
+StatusItemLabel.AnchorPoint = Vector2.new(0.5, 0)
+StatusItemLabel.BackgroundTransparency = 1
+StatusItemLabel.Position = UDim2.new(0.5, 0, 0, 10)
+StatusItemLabel.Size = UDim2.new(0, 300, 0, 18)
+StatusItemLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+StatusItemLabel.Text = "Status Script : Loading.... "
+StatusItemLabel.TextColor3 = Color3.fromRGB(0, 191, 255)
+StatusItemLabel.TextSize = 16
 
-local function Attack()
-    local character = LocalPlayer.Character
-    if not character then return end
-    
-    local tool = character:FindFirstChildOfClass("Tool")
-    if not tool or tool:GetAttribute("WeaponType") ~= "Melee" then return end
+StatusFarmLabel = Instance.new("TextLabel")
+StatusFarmLabel.Name = "StatusFarm"
+StatusFarmLabel.Parent = StatusMain
+StatusFarmLabel.AnchorPoint = Vector2.new(0.5, 0)
+StatusFarmLabel.BackgroundTransparency = 1
+StatusFarmLabel.Position = UDim2.new(0.5, 0, 0, 35)
+StatusFarmLabel.Size = UDim2.new(0, 300, 0, 18)
+StatusFarmLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+StatusFarmLabel.Text = "Status Farm: N/A"
+StatusFarmLabel.TextColor3 = Color3.fromRGB(0, 191, 255)
+StatusFarmLabel.TextSize = 16
 
-    local enemy = GetClosestEnemy()
-    if enemy then
-        local enemyHead = enemy:FindFirstChild("Head")
-        if enemyHead then
-            -- Register attack and hit via network modules
-            Remotes["RE/RegisterAttack"]:FireServer()
-            Remotes["RE/RegisterHit"]:FireServer(enemy, enemyHead)
-            Net:RemoteEvent("RegisterHit"):FireServer(enemy, enemyHead)
-        end
-    end
-end
-
-
-task.spawn(function()
-    while true do
-        Attack()
-        task.wait() -- CHỈNH: Chờ tối thiểu để lặp nhanh nhất
-    end
-end)
-
-local function GetBladeHits()
-    local targets = {}
-    local function GetDistance(v)
-        return (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-    end
-    
-    for _, part in pairs({game.Workspace.Enemies, game.Workspace.Characters}) do
-        for _, v in pairs(part:GetChildren()) do
-            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") then
-                if GetDistance(v.HumanoidRootPart) < 60 then
-                    table.insert(targets, v)
-                end
-            end
-        end
-    end
-
-    return targets
-end
-
-local function AttackAll()
-    local player = game.Players.LocalPlayer
-    local character = player.Character
-    if not character then return end
-
-    local equippedWeapon = character:FindFirstChild("EquippedWeapon")
-    if not equippedWeapon then return end
+StatusMobLabel = Instance.new("TextLabel")
+StatusMobLabel.Name = "StatusMob"
+StatusMobLabel.Parent = StatusMain
+StatusMobLabel.AnchorPoint = Vector2.new(0.5, 0)
+StatusMobLabel.BackgroundTransparency = 1
+StatusMobLabel.Position = UDim2.new(0.5, 0, 0, 60)
+StatusMobLabel.Size = UDim2.new(0, 300, 0, 18)
+StatusMobLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+StatusMobLabel.Text = "Farm Mob: N/A"
+StatusMobLabel.TextColor3 = Color3.fromRGB(0, 191, 255)
+StatusMobLabel.TextSize = 16
 
 
-    local enemies = GetBladeHits()
-    if #enemies > 0 then
-        local netModule = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
-        netModule:WaitForChild("RE/RegisterAttack"):FireServer(-math.huge)
-        
-        local args = {nil, {}}
-        for i, v in pairs(enemies) do
-            if not args[1] then
-                args[1] = v.Head
-            end
-            args[2][i] = {v, v.HumanoidRootPart}
-        end
-        
-        netModule:WaitForChild("RE/RegisterHit"):FireServer(unpack(args))
-    end
-end
+_G.JoinDungeon = false
+_G.AccjoinRaid = false
+_G.AccStartRaid = false
+_G.SelectDiff = CFG["Select Difficulty"]
+_G.AccountJoin = false
+local AccjoinRaids = CFG["Account Join Raid"]
 
-spawn(function()
-    while task.wait() do AttackAll() end
-end)
-
-
-
-local Config = {
-    AttackDistance = 65,
-    AttackMobs = true,
-    AttackPlayers = true,
-    AttackCooldown = 0, -- CHỈNH: Loại bỏ cooldown nội tại
-    ComboResetTime = 0.4,
-    MaxCombo = 4,
-    HitboxLimbs = {"RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand"},
-    AutoClickEnabled = true
+-- ✅ Khai báo biến dùng chung ra ngoài
+local DungeonRadius = 10
+local Dungeons = {
+    {name = "Dungeon 1", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
+    {name = "Dungeon 2", center = Vector3.new(-360.278137, 232.758224, -447.755859)},
+    {name = "Dungeon 3", center = Vector3.new(-231.965485, 232.758224, -433.251038)},
 }
 
-local FastAttack = {}
-FastAttack.__index = FastAttack
-
-function FastAttack.new()
-    local self = setmetatable({
-        Debounce = 0,
-        ComboDebounce = 0,
-        ShootDebounce = 0,
-        M1Combo = 0,
-        EnemyRootPart = nil,
-        Connections = {},
-        Overheat = {Dragonstorm = {MaxOverheat = 3, Cooldown = 0, TotalOverheat = 0, Distance = 350, Shooting = false}},
-        ShootsPerTarget = {["Dual Flintlock"] = 2},
-        SpecialShoots = {["Skull Guitar"] = "TAP", ["Bazooka"] = "Position", ["Cannon"] = "Position", ["Dragonstorm"] = "Overheat"}
-    }, FastAttack)
-    
-    pcall(function()
-        self.CombatFlags = require(Modules.Flags).COMBAT_REMOTE_THREAD
-        self.ShootFunction = getupvalue(require(ReplicatedStorage.Controllers.CombatController).Attack, 9)
-        local LocalScript = Player:WaitForChild("PlayerScripts"):FindFirstChildOfClass("LocalScript")
-        if LocalScript and getsenv then
-            self.HitFunction = getsenv(LocalScript)._G.SendHitsToServer
-        end
-    end)
-    
-    return self
+local function tp(cframe)
+    local character = plr.Character
+    if not character then return end
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if root then
+        root.CFrame = cframe
+    end
 end
 
-function FastAttack:IsEntityAlive(entity)
-    local humanoid = entity and entity:FindFirstChild("Humanoid")
-    return humanoid and humanoid.Health > 0
-end
-
-function FastAttack:CheckStun(Character, Humanoid, ToolTip)
-    local Stun = Character:FindFirstChild("Stun")
-    local Busy = Character:FindFirstChild("Busy")
-    if Humanoid.Sit and (ToolTip == "Sword" or ToolTip == "Melee" or ToolTip == "Blox Fruit") then
-        return false
-    elseif Stun and Stun.Value > 0 or Busy and Busy.Value then
+local function TeleportToPlayer(targetName)
+    local Players = game:GetService("Players")
+    local localPlayer = Players.LocalPlayer
+    
+    -- Tìm player
+    local targetPlayer = Players:FindFirstChild(targetName)
+    if not targetPlayer then
+        warn("❌ Player not found:", targetName)
         return false
     end
+    
+    -- Get characters
+    local myChar = localPlayer.Character
+    local targetChar = targetPlayer.Character
+    
+    if not myChar or not targetChar then
+        warn("❌ Character not loaded!")
+        return false
+    end
+    
+    -- Get HRPs
+    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+    local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+    
+    if not myHRP or not targetHRP then
+        warn("❌ HumanoidRootPart not found!")
+        return false
+    end
+    
+    -- Teleport (offset 3 studs phía sau)
+    myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 3)
+    print("✅ Teleported to:", targetName)
     return true
 end
 
-function FastAttack:GetBladeHits(Character, Distance)
-    local Position = Character:GetPivot().Position
-    local BladeHits = {}
-    Distance = Distance or Config.AttackDistance
-    
-    local function ProcessTargets(Folder, CanAttack)
-        for _, Enemy in ipairs(Folder:GetChildren()) do
-            if Enemy ~= Character and self:IsEntityAlive(Enemy) then
-                local BasePart = Enemy:FindFirstChild(Config.HitboxLimbs[math.random(#Config.HitboxLimbs)]) or Enemy:FindFirstChild("HumanoidRootPart")
-                if BasePart and (Position - BasePart.Position).Magnitude <= Distance then
-                    if not self.EnemyRootPart then
-                        self.EnemyRootPart = BasePart
-                    else
-                        table.insert(BladeHits, {Enemy, BasePart})
-                    end
+
+
+local function getPlayersInDungeon(center)
+    local playersInside = {}
+    for _, player in pairs(game.Players:GetPlayers()) do
+        local char = player.Character
+        if char then
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                local dist = (root.Position - center).Magnitude
+                if dist <= DungeonRadius then
+                    table.insert(playersInside, player.Name)
                 end
             end
         end
     end
-    
-    if Config.AttackMobs then ProcessTargets(Workspace.Enemies) end
-    if Config.AttackPlayers then ProcessTargets(Workspace.Characters, true) end
-    
-    return BladeHits
+    return playersInside
 end
 
-function FastAttack:GetClosestEnemy(Character, Distance)
-    local BladeHits = self:GetBladeHits(Character, Distance)
-    local Closest, MinDistance = nil, math.huge
-    
-    for _, Hit in ipairs(BladeHits) do
-        local Magnitude = (Character:GetPivot().Position - Hit[2].Position).Magnitude
-        if Magnitude < MinDistance then
-            MinDistance = Magnitude
-            Closest = Hit[2]
+
+_G.FoundDungeon = nil  -- Chỉ lưu tên dungeon
+
+local function JoinDungeonTeleport()
+    while task.wait(0.5) do
+        if _G.AccjoinRaid then
+            local joined = false
+
+            for _, dungeon in pairs(Dungeons) do
+                local players = getPlayersInDungeon(dungeon.center)
+
+                if #players == 0 then
+                    print("✅ " .. dungeon.name .. " đang trống → Teleport vào!")
+                    StatusFarmLabel.Text = "Status Farm: wait" .. dungeon.name
+                    
+                    -- ✅ TẮT FLAG NGAY LẬP TỨC
+                    _G.AccjoinRaid = false
+                    _G.FoundDungeon = dungeon.name
+                    
+                    tp(CFrame.new(dungeon.center + Vector3.new(0, 3, 0)))
+                    
+                    -- ✅ ĐỢI 2 GIÂY ĐỂ CHẮC CHẮN ĐÃ VÀO
+                    task.wait(2)
+                    
+                    _G.StartDuggeon = true
+                    joined = true
+                    StatusFarmLabel.Text = " done join " .. dungeon.name
+                    break -- Break khỏi vòng for
+
+                else
+                    print("❌ " .. dungeon.name .. " đã có " .. #players .. " người")
+                end
+            end
+
+            if not joined then
+                print("⏳ Tất cả Dungeon đều có người, thử lại...")
+                StatusFarmLabel.Text = "Status Farm: wait dungeon no player..."
+            end
+            
+            -- ✅ QUAN TRỌNG: BREAK KHỎI VÒNG WHILE NẾU ĐÃ JOIN THÀNH CÔNG
+            if joined then
+                
+                break -- Thoát khỏi vòng while hoàn toàn
+
+            end
         end
     end
-    return Closest
+end
+local function Accountteleaccjoin()
+    while task.wait(0.5) do
+        if _G.AccountJoin then
+            print("Đang teleport vào acc join...")
+            StatusFarmLabel.Text = "Status Farm: Teleport to leader..."
+             TeleportToPlayer(CFG["Account Join Raid"])
+            _G.StartDuggeon = true
+        end
+    end
 end
 
-function FastAttack:GetCombo()
-    local Combo = (tick() - self.ComboDebounce) <= Config.ComboResetTime and self.M1Combo or 0
-    Combo = Combo >= Config.MaxCombo and 1 or Combo + 1
-    self.ComboDebounce = tick()
-    self.M1Combo = Combo
-    return Combo
+local function StartDungeon()
+    while task.wait(0.5) do
+        if _G.StartDuggeon then
+            print("Starting dungeon...")
+            StatusFarmLabel.Text = "Status Farm: start dungeon..."
+
+            local dungeon_teleporter = nil
+            if _G.FoundDungeon == "Dungeon 1" then 
+                dungeon_teleporter = "DUNGEON_TELEPORTER1"
+            elseif _G.FoundDungeon == "Dungeon 2" then
+                dungeon_teleporter = "DUNGEON_TELEPORTER2"
+            elseif _G.FoundDungeon == "Dungeon 3" then
+                dungeon_teleporter = "DUNGEON_TELEPORTER3"
+            end
+
+            if dungeon_teleporter then
+                
+                workspace:WaitForChild("Map"):WaitForChild("Simulation Hub"):WaitForChild("Pads")
+                    :WaitForChild(dungeon_teleporter):WaitForChild("DungeonSettingsChanged")
+                    :FireServer("Difficulty", CFG["Select Difficulty"])
+                
+                task.wait(0.5)
+                
+               
+                workspace:WaitForChild("Map"):WaitForChild("Simulation Hub"):WaitForChild("Pads")
+                    :WaitForChild(dungeon_teleporter):WaitForChild("DungeonSettingsChanged")
+                    :FireServer("Start")
+                
+                _G.StartDuggeon = false  
+            else
+                print("Lỗi: Không xác định được dungeon đã vào.")
+            end
+        end
+    end
 end
 
-function FastAttack:ShootInTarget(TargetPosition)
-    local Character = Player.Character
-    if not self:IsEntityAlive(Character) then return end
-    
-    local Equipped = Character:FindFirstChildOfClass("Tool")
-    if not Equipped or Equipped.ToolTip ~= "Gun" then return end
-    
-    local Cooldown = 0 -- CHỈNH: Ép cooldown súng về 0
-    if (tick() - self.ShootDebounce) < Cooldown then return end
-    
-    local ShootType = self.SpecialShoots[Equipped.Name] or "Normal"
-    if ShootType == "Position" or (ShootType == "TAP" and Equipped:FindFirstChild("RemoteEvent")) then
-        Equipped:SetAttribute("LocalTotalShots", (Equipped:GetAttribute("LocalTotalShots") or 0) + 1)
-        GunValidator:FireServer(self:GetValidator2())
-        
-        if ShootType == "TAP" then
-            Equipped.RemoteEvent:FireServer("TAP", TargetPosition)
+local function isInConfig(name, configTable)
+    local lowerName = name:lower() -- Chuyển tên người chơi thành chữ thường
+    if type(configTable) == "table" then
+        for _, v in pairs(configTable) do
+            if v:lower() == lowerName then return true end -- Chuyển tên trong config thành chữ thường để so sánh
+        end
+    elseif type(configTable) == "string" then
+        return lowerName == configTable:lower()
+    end
+    return false
+end
+
+local function joinDungeon()
+    while task.wait(0.1) do
+        local playername = plr.Name -- Lấy tên người chơi
+
+        -- Truyền playername vào hàm isInConfig (hàm này đã tự động xử lý :lower() ở trên)
+        local AccJoinS = isInConfig(playername, CFG["Account Join Raid"])
+        local AccJoin  = isInConfig(playername, CFG["Account Join"])
+
+        if AccJoinS then
+            print("Account Join Raid : " .. playername)
+            StatusMobLabel.Text = "Your Account Status : Join Dungeon Teleport"
+            _G.AccjoinRaid = true
+            break -- Nên thêm break để vòng lặp không chạy liên tục gây lag sau khi đã nhận diện xong
+            
+        elseif AccJoin then
+            print("Account Join : " .. playername)
+            StatusMobLabel.Text = "Your Account Status : Join Account"
+            _G.AccountJoin = true
+            break -- Nên thêm break
+            
         else
-            ShootGunEvent:FireServer(TargetPosition)
-        end
-        self.ShootDebounce = tick()
-    else
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-        task.wait() -- CHỈNH: Giảm delay click súng
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
-        self.ShootDebounce = tick()
-    end
-end
-
-function FastAttack:GetValidator2()
-    local v1 = getupvalue(self.ShootFunction, 15)
-    local v2 = getupvalue(self.ShootFunction, 13)
-    local v3 = getupvalue(self.ShootFunction, 16)
-    local v4 = getupvalue(self.ShootFunction, 17)
-    local v5 = getupvalue(self.ShootFunction, 14)
-    local v6 = getupvalue(self.ShootFunction, 12)
-    local v7 = getupvalue(self.ShootFunction, 18)
-    
-    local v8 = v6 * v2
-    local v9 = (v5 * v2 + v6 * v1) % v3
-    v9 = (v9 * v3 + v8) % v4
-    v5 = math.floor(v9 / v3)
-    v6 = v9 - v5 * v3
-    v7 = v7 + 1
-    
-    setupvalue(self.ShootFunction, 15, v1)
-    setupvalue(self.ShootFunction, 13, v2)
-    setupvalue(self.ShootFunction, 16, v3)
-    setupvalue(self.ShootFunction, 17, v4)
-    setupvalue(self.ShootFunction, 14, v5)
-    setupvalue(self.ShootFunction, 12, v6)
-    setupvalue(self.ShootFunction, 18, v7)
-    
-    return math.floor(v9 / v4 * 16777215), v7
-end
-
-function FastAttack:UseNormalClick(Character, Humanoid, Cooldown)
-    self.EnemyRootPart = nil
-    local BladeHits = self:GetBladeHits(Character)
-    
-    if self.EnemyRootPart then
-        RegisterAttack:FireServer(0) -- CHỈNH: Gửi cooldown 0 lên server
-        if self.CombatFlags and self.HitFunction then
-            self.HitFunction(self.EnemyRootPart, BladeHits)
-        else
-            RegisterHit:FireServer(self.EnemyRootPart, BladeHits)
+            print("Your account not have in config")
         end
     end
 end
 
-function FastAttack:UseFruitM1(Character, Equipped, Combo)
-    local Targets = self:GetBladeHits(Character)
-    if not Targets[1] then return end
-    
-    local Direction = (Targets[1][2].Position - Character:GetPivot().Position).Unit
-    Equipped.LeftClickRemote:FireServer(Direction, Combo)
-end
 
-function FastAttack:Attack()
-    -- CHỈNH: Loại bỏ kiểm tra tick() để đánh liên tục
-    local Character = Player.Character
-    if not Character or not self:IsEntityAlive(Character) then return end
-    
-    local Humanoid = Character.Humanoid
-    local Equipped = Character:FindFirstChildOfClass("Tool")
-    if not Equipped then return end
-    
-    local ToolTip = Equipped.ToolTip
-    if not table.find({"Melee", "Blox Fruit", "Sword", "Gun"}, ToolTip) then return end
-    
-    -- CHỈNH: Cooldown nội tại ép về 0
-    local Cooldown = 0 
-    if not self:CheckStun(Character, Humanoid, ToolTip) then return end
-    
-    local Combo = self:GetCombo()
-    -- CHỈNH: Loại bỏ cộng thêm giây khi đạt MaxCombo
-    self.Debounce = tick()
-    
-    if ToolTip == "Blox Fruit" and Equipped:FindFirstChild("LeftClickRemote") then
-        self:UseFruitM1(Character, Equipped, Combo)
-    elseif ToolTip == "Gun" then
-        local Target = self:GetClosestEnemy(Character, 120)
-        if Target then
-            self:ShootInTarget(Target.Position)
-        end
-    else
-        self:UseNormalClick(Character, Humanoid, Cooldown)
+task.spawn(JoinDungeonTeleport)
+task.spawn(joinDungeon)
+task.spawn(Accountteleaccjoin)  
+task.spawn(StartDungeon)  
+local function GetRole()
+    local myName = game:GetService("Players").LocalPlayer.Name:lower()
+    for _, n in pairs(getgenv().Configs["Account Join Raid"]) do
+        if n:lower() == myName then return "Account Join Raid" end
     end
+    for _, n in pairs(getgenv().Configs["Account Join"]) do
+        if n:lower() == myName then return "Account Join" end
+    end
+    return nil
 end
 
-local AttackInstance = FastAttack.new()
-table.insert(AttackInstance.Connections, RunService.Stepped:Connect(function()
-    AttackInstance:Attack()
-end))
+if not game:IsLoaded() then game.Loaded:Wait() end
 
-for _, v in pairs(getgc(true)) do
-    if typeof(v) == "function" and iscclosure(v) then
-        local name = debug.getinfo(v).name
-        if name == "Attack" or name == "attack" or name == "RegisterHit" then
-            hookfunction(v, function(...)
-                AttackInstance:Attack()
-                return v(...)
+local myRole = GetRole()
+
+if myRole == "Account Join Raid" then
+    getgenv().Key = "135a3a017d2b8d5d6283647b"
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-fruit"))()
+    
+elseif myRole == "Account Join" then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-melle"))()
+    
+else
+    warn("Account not in Config. Script Stopped.")
+end
+-- Khai báo biến (Khai báo ở đây để script bắt đầu chạy)
+_G.RaceClickAutov3 = true
+_G.RaceClickAutov4 = true
+Boud = true
+
+-- Các biến hệ thống
+local ply = game.Players
+local plr = ply.LocalPlayer
+local replicated = game:GetService("ReplicatedStorage")
+
+-- Hàm bổ trợ (nếu script gốc của bạn dùng Useskills)
+local function Useskills(arg1, key)
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
+    wait(0.1)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
+end
+
+---
+
+-- Auto Race V3
+spawn(function()
+    while task.wait(0.2) do
+        if _G.RaceClickAutov3 then
+            pcall(function()
+                -- Dùng FireServer để kích hoạt kỹ năng Race
+                replicated.Remotes.CommE:FireServer("ActivateAbility")
+            end)
+            -- Đợi 30s hồi chiêu để không spam lag máy
+            task.wait(30)
+        end
+    end
+end)
+
+-- Auto Race V4 (Y)
+spawn(function()
+    while task.wait(0.2) do
+        if _G.RaceClickAutov4 then
+            pcall(function()
+                local char = plr.Character
+                if char and char:FindFirstChild("RaceEnergy") then
+                    -- Nếu nộ (Energy) đầy (thường là 1 hoặc 100 tùy bản hack)
+                    if char.RaceEnergy.Value >= 1 then 
+                        Useskills("nil", "Y")
+                    end
+                end
             end)
         end
     end
-end
+end)
+
+-- Auto Bật Buso (Haki)
+spawn(function()
+    while task.wait(1) do
+        if Boud then
+            pcall(function()
+                if not plr.Character:FindFirstChild("HasBuso") then
+                    replicated.Remotes.CommF_:InvokeServer("Buso")
+                end
+            end)
+        end
+    end
+end)
