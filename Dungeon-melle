@@ -1,85 +1,167 @@
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
-local TWEEN_SPEED = 400
+-- ===== KHAI BÁO BIẾN =====
+_G.Boud = true               
+_G.RaceClickAutov3 = true    
+_G.RaceClickAutov4 = true    
+
+-- ===== CONFIG DI CHUYỂN =====
+local MOVE_SPEED = 400       
+local HEIGHT_ABOVE = 20      -- Tăng lên 10 cho thoáng
 local ENEMY_FOLDER_NAME = "Enemies" 
 local MAX_DISTANCE = 1000 
-local Y_OFFSET = 20
+local IGNORED_ENEMY = "Blank Buddy" 
+-- ===========================================
 
-RunService.Stepped:Connect(function()
+local movementToken = 0
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+local CommE = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommE")
+
+local function getHRP()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
+-- Hàm chống rơi/giựt (Anti-Gravity)
+local function setAntiGravity(active)
     local char = player.Character
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
+    local hum = char and char:FindFirstChild("Humanoid")
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    
+    if hrp and hum then
+        if active then
+            -- Tạo lực nâng nếu chưa có
+            local bv = hrp:FindFirstChild("AntiGlitch") or Instance.new("BodyVelocity")
+            bv.Name = "AntiGlitch"
+            bv.Velocity = Vector3.new(0, 0, 0)
+            bv.MaxForce = Vector3.new(9e9, 9e9, 9e9) -- Khóa chặt vị trí Y
+            bv.Parent = hrp
+            hum.PlatformStand = true -- Tắt vật lý đứng để đỡ giật
+        else
+            if hrp:FindFirstChild("AntiGlitch") then hrp.AntiGlitch:Destroy() end
+            hum.PlatformStand = false
+        end
+    end
+end
+
+-- 1. HÀM TỰ ĐỘNG HAKI & RACE (Giữ nguyên)
+-- Khai báo biến (Khai báo ở đây để script bắt đầu chạy)
+_G.RaceClickAutov3 = true
+_G.RaceClickAutov4 = true
+Boud = true
+
+-- Các biến hệ thống
+local ply = game.Players
+local plr = ply.LocalPlayer
+local replicated = game:GetService("ReplicatedStorage")
+
+-- Hàm bổ trợ (nếu script gốc của bạn dùng Useskills)
+local function Useskills(arg1, key)
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
+    wait(0.1)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
+end
+
+---
+
+-- Auto Race V3
+spawn(function()
+    while task.wait(0.2) do
+        if _G.RaceClickAutov3 then
+            pcall(function()
+                -- Dùng FireServer để kích hoạt kỹ năng Race
+                replicated.Remotes.CommE:FireServer("ActivateAbility")
+            end)
+            -- Đợi 30s hồi chiêu để không spam lag máy
+            task.wait(30)
         end
     end
 end)
 
-local function getHRP()
-    local char = player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        return char.HumanoidRootPart
+-- Auto Race V4 (Y)
+spawn(function()
+    while task.wait(0.2) do
+        if _G.RaceClickAutov4 then
+            pcall(function()
+                local char = plr.Character
+                if char and char:FindFirstChild("RaceEnergy") then
+                    -- Nếu nộ (Energy) đầy (thường là 1 hoặc 100 tùy bản hack)
+                    if char.RaceEnergy.Value >= 1 then 
+                        Useskills("nil", "Y")
+                    end
+                end
+            end)
+        end
     end
-    return nil
-end
+end)
 
-local currentTween = nil
-
-local function tweenTo(targetCFrame)
+-- Auto Bật Buso (Haki)
+spawn(function()
+    while task.wait(1) do
+        if Boud then
+            pcall(function()
+                if not plr.Character:FindFirstChild("HasBuso") then
+                    replicated.Remotes.CommF_:InvokeServer("Buso")
+                end
+            end)
+        end
+    end
+end)
+-- 2. HÀM DI CHUYỂN TRÊN ĐẦU (ĐÃ FIX GIỰT)
+local function hoverAboveTarget(targetEnemy)
     local hrp = getHRP()
-    if not hrp then return end
+    local targetHRP = targetEnemy:FindFirstChild("HumanoidRootPart")
+    local targetHum = targetEnemy:FindFirstChild("Humanoid")
+    local myToken = movementToken
 
-    local dist = (targetCFrame.Position - hrp.Position).Magnitude
-    if dist < 0.5 then return end 
+    setAntiGravity(true) -- Bật chống giựt khi bắt đầu target
 
-    local duration = dist / TWEEN_SPEED
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+    while targetHum and targetHum.Health > 0 and myToken == movementToken do
+        if not targetHRP or not targetHRP.Parent then break end
+        
+        local enemyPos = targetHRP.Position
+        local targetPos = enemyPos + Vector3.new(0, HEIGHT_ABOVE, 0)
+        local currentPos = hrp.Position
+        local dist = (targetPos - currentPos).Magnitude
 
-    if currentTween then
-        currentTween:Cancel()
+        if dist > 0.1 then
+            local dir = (targetPos - currentPos).Unit
+            hrp.CFrame = (hrp.CFrame - hrp.Position) + (currentPos + dir * math.min(dist, MOVE_SPEED * task.wait()))
+        else
+            -- Đứng yên trên đầu quái nhưng cập nhật theo quái di chuyển
+            hrp.CFrame = (hrp.CFrame - hrp.Position) + targetPos
+            task.wait()
+        end
+        if not targetEnemy.Parent then break end
     end
-
-    currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-    currentTween:Play()
-    currentTween.Completed:Wait()
+    
+    setAntiGravity(false) -- Tắt khi xong việc
 end
 
+-- 3. VÒNG LẶP QUÉT QUÁI
 task.spawn(function()
-    while task.wait() do
+    while true do
         local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
-        local myHRP = getHRP() 
+        local myHRP = getHRP()
 
         if folder and myHRP then
             for _, enemy in pairs(folder:GetChildren()) do
+                if enemy.Name == IGNORED_ENEMY then continue end
                 local eHRP = enemy:FindFirstChild("HumanoidRootPart")
                 local eHum = enemy:FindFirstChild("Humanoid")
                 
                 if eHRP and eHum and eHum.Health > 0 then
-                    local startDist = (eHRP.Position - myHRP.Position).Magnitude
-                    
-                    if startDist <= MAX_DISTANCE then
-                        while eHum and eHum.Health > 0 do
-                            myHRP = getHRP()
-                            if not myHRP then break end
-                            
-                            local targetCFrame = eHRP.CFrame * CFrame.new(0, Y_OFFSET, 0)
-                            local currentDist = (targetCFrame.Position - myHRP.Position).Magnitude
-                            
-                            if currentDist > 5 then
-                                tweenTo(targetCFrame)
-                            else
-                                myHRP.CFrame = targetCFrame
-                            end
-                            task.wait()
-                        end
+                    if (eHRP.Position - myHRP.Position).Magnitude <= MAX_DISTANCE then
+                        movementToken += 1
+                        hoverAboveTarget(enemy)
                     end
                 end
             end
         end
+        task.wait(0.1) 
     end
 end)
 local Players = game:GetService("Players")
