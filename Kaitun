@@ -1,3 +1,14 @@
+getgenv().Configs = {
+  ["Account Join"] = {
+   "sdc1gscr",
+   "ann_2k11x",
+   "wkwttpnfcsq"
+   }, -- account join
+  ["Account Join Raid"] = {
+  "e2k11x" -- account join first place raid
+  },
+  ["Select Difficulty"] = "Normal" -- "Hard" , "Challenge" , "Normal"
+} 
 local CFG = getgenv().Configs
 local ply = game.Players
 local plr = ply.LocalPlayer
@@ -123,7 +134,7 @@ local function JoinDungeonTeleport()
 
                 if #players == 0 then
                     print("✅ " .. dungeon.name .. " đang trống → Teleport vào!")
-                    StatusFarmLabel.Text = "Status Farm: Đang vào " .. dungeon.name
+                    StatusFarmLabel.Text = "Status Farm: wait" .. dungeon.name
                     
                     -- ✅ TẮT FLAG NGAY LẬP TỨC
                     _G.AccjoinRaid = false
@@ -136,7 +147,7 @@ local function JoinDungeonTeleport()
                     
                     _G.StartDuggeon = true
                     joined = true
-                    StatusFarmLabel.Text = " Vô thành công " .. dungeon.name
+                    StatusFarmLabel.Text = " done join " .. dungeon.name
                     break -- Break khỏi vòng for
 
                 else
@@ -146,7 +157,7 @@ local function JoinDungeonTeleport()
 
             if not joined then
                 print("⏳ Tất cả Dungeon đều có người, thử lại...")
-                StatusFarmLabel.Text = "Status Farm: Chờ dungeon trống..."
+                StatusFarmLabel.Text = "Status Farm: wait dungeon no player..."
             end
             
             -- ✅ QUAN TRỌNG: BREAK KHỎI VÒNG WHILE NẾU ĐÃ JOIN THÀNH CÔNG
@@ -162,7 +173,7 @@ local function Accountteleaccjoin()
     while task.wait(0.5) do
         if _G.AccountJoin then
             print("Đang teleport vào acc join...")
-            StatusFarmLabel.Text = "Status Farm: Teleport vào acc join..."
+            StatusFarmLabel.Text = "Status Farm: Teleport to leader..."
             tp(game:GetService("Players").AccjoinRaids.Character.HumanoidRootPart.CFrame)
             _G.StartDuggeon = true
         end
@@ -173,7 +184,7 @@ local function StartDungeon()
     while task.wait(0.5) do
         if _G.StartDuggeon then
             print("Starting dungeon...")
-            StatusFarmLabel.Text = "Status Farm: Bắt đầu dungeon..."
+            StatusFarmLabel.Text = "Status Farm: start dungeon..."
 
             local dungeon_teleporter = nil
             if _G.FoundDungeon == "Dungeon 1" then 
@@ -206,20 +217,22 @@ local function StartDungeon()
 end
 
 local function isInConfig(name, configTable)
+    local lowerName = name:lower() -- Chuyển tên người chơi thành chữ thường
     if type(configTable) == "table" then
         for _, v in pairs(configTable) do
-            if v == name then return true end
+            if v:lower() == lowerName then return true end -- Chuyển tên trong config thành chữ thường để so sánh
         end
     elseif type(configTable) == "string" then
-        return name == configTable
+        return lowerName == configTable:lower()
     end
     return false
 end
 
 local function joinDungeon()
     while task.wait(0.1) do
-        local playername = plr.Name
+        local playername = plr.Name -- Lấy tên người chơi
 
+        -- Truyền playername vào hàm isInConfig (hàm này đã tự động xử lý :lower() ở trên)
         local AccJoinS = isInConfig(playername, CFG["Account Join Raid"])
         local AccJoin  = isInConfig(playername, CFG["Account Join"])
 
@@ -227,12 +240,14 @@ local function joinDungeon()
             print("Account Join Raid : " .. playername)
             StatusMobLabel.Text = "Your Account Status : Join Dungeon Teleport"
             _G.AccjoinRaid = true
-
+            break -- Nên thêm break để vòng lặp không chạy liên tục gây lag sau khi đã nhận diện xong
+            
         elseif AccJoin then
             print("Account Join : " .. playername)
             StatusMobLabel.Text = "Your Account Status : Join Account"
             _G.AccountJoin = true
-
+            break -- Nên thêm break
+            
         else
             print("Your account not have in config")
         end
@@ -244,7 +259,6 @@ task.spawn(JoinDungeonTeleport)
 task.spawn(joinDungeon)
 task.spawn(Accountteleaccjoin)  
 task.spawn(StartDungeon)  
-
 local function GetRole()
     local myName = game:GetService("Players").LocalPlayer.Name:lower()
     for _, n in pairs(getgenv().Configs["Account Join Raid"]) do
@@ -261,206 +275,11 @@ if not game:IsLoaded() then game.Loaded:Wait() end
 local myRole = GetRole()
 
 if myRole == "Account Join Raid" then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/attack%20dungeon"))()
-local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-
--- Hàm để chọn Fruit (Ô số 2)
-function equipFruitSlot()
-    local character = localPlayer.Character
-    local backpack = localPlayer.Backpack
+    getgenv().Key = "135a3a017d2b8d5d6283647b"
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-fruit"))()
     
-    if character then
-        -- Kiểm tra xem trên tay đã cầm Tool nào chưa
-        local currentlyEquipped = character:FindFirstChildOfClass("Tool")
-        
-        -- Nếu chưa cầm hoặc cái đang cầm không phải Fruit thì mới chọn
-        -- Ở đây mình tìm item dựa trên ToolTip là "Blox Fruit" (chuẩn của game)
-        for _, item in pairs(backpack:GetChildren()) do
-            if item:IsA("Tool") and item.ToolTip == "Blox Fruit" then
-                character.Humanoid:EquipTool(item)
-                break
-            end
-        end
-    end
-end
-
--- Chạy vòng lặp kiểm tra mỗi 1 giây để đảm bảo luôn cầm Fruit
-task.spawn(function()
-    while task.wait(0.1) do
-        equipFruitSlot()
-    end
-end)
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message%20(7).txt"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message.txt"))()
-
-local Noclip = nil
-local Clip = nil
-
-function noclip()
-	Clip = false
-	local function Nocl()
-		if Clip == false and game.Players.LocalPlayer.Character ~= nil then
-			for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-				if v:IsA('BasePart') and v.CanCollide and v.Name ~= floatName then
-					v.CanCollide = false
-				end
-			end
-		end
-		wait(0.21) -- basic optimization
-	end
-	Noclip = game:GetService('RunService').Stepped:Connect(Nocl)
-end
-
-function clip()
-	if Noclip then Noclip:Disconnect() end
-	Clip = true
-end
-
-noclip() -- to toggle noclip() and clip()
-
-
 elseif myRole == "Account Join" then
-    local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-local TWEEN_SPEED = 400
-local ENEMY_FOLDER_NAME = "Enemies" 
-local MAX_DISTANCE = 1000 
-local Y_OFFSET = 20
-
-RunService.Stepped:Connect(function()
-    local char = player.Character
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
-
-local function getHRP()
-    local char = player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        return char.HumanoidRootPart
-    end
-    return nil
-end
-
-local currentTween = nil
-
-local function tweenTo(targetCFrame)
-    local hrp = getHRP()
-    if not hrp then return end
-
-    local dist = (targetCFrame.Position - hrp.Position).Magnitude
-    if dist < 0.5 then return end 
-
-    local duration = dist / TWEEN_SPEED
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
-
-    if currentTween then
-        currentTween:Cancel()
-    end
-
-    currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-    currentTween:Play()
-    currentTween.Completed:Wait()
-end
-
-task.spawn(function()
-    while task.wait() do
-        local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
-        local myHRP = getHRP() 
-
-        if folder and myHRP then
-            for _, enemy in pairs(folder:GetChildren()) do
-                local eHRP = enemy:FindFirstChild("HumanoidRootPart")
-                local eHum = enemy:FindFirstChild("Humanoid")
-                
-                if eHRP and eHum and eHum.Health > 0 then
-                    local startDist = (eHRP.Position - myHRP.Position).Magnitude
-                    
-                    if startDist <= MAX_DISTANCE then
-                        while eHum and eHum.Health > 0 do
-                            myHRP = getHRP()
-                            if not myHRP then break end
-                            
-                            local targetCFrame = eHRP.CFrame * CFrame.new(0, Y_OFFSET, 0)
-                            local currentDist = (targetCFrame.Position - myHRP.Position).Magnitude
-                            
-                            if currentDist > 5 then
-                                tweenTo(targetCFrame)
-                            else
-                                myHRP.CFrame = targetCFrame
-                            end
-                            task.wait()
-                        end
-                    end
-                end
-            end
-        end
-    end
-end)
-local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-
--- Hàm để chọn Fruit (Ô số 2)
-function equipFruitSlot()
-    local character = localPlayer.Character
-    local backpack = localPlayer.Backpack
-    
-    if character then
-        -- Kiểm tra xem trên tay đã cầm Tool nào chưa
-        local currentlyEquipped = character:FindFirstChildOfClass("Tool")
-        
-        -- Nếu chưa cầm hoặc cái đang cầm không phải Fruit thì mới chọn
-        -- Ở đây mình tìm item dựa trên ToolTip là "Blox Fruit" (chuẩn của game)
-        for _, item in pairs(backpack:GetChildren()) do
-            if item:IsA("Tool") and item.ToolTip == "Melee" then
-                character.Humanoid:EquipTool(item)
-                break
-            end
-        end
-    end
-end
-
--- Chạy vòng lặp kiểm tra mỗi 1 giây để đảm bảo luôn cầm Fruit
-task.spawn(function()
-    while task.wait(0.1) do
-        equipFruitSlot()
-    end
-end)
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message%20(7).txt"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message%20(1).txt"))()
-
-local Noclip = nil
-local Clip = nil
-
-function noclip()
-	Clip = false
-	local function Nocl()
-		if Clip == false and game.Players.LocalPlayer.Character ~= nil then
-			for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-				if v:IsA('BasePart') and v.CanCollide and v.Name ~= floatName then
-					v.CanCollide = false
-				end
-			end
-		end
-		wait(0.21) -- basic optimization
-	end
-	Noclip = game:GetService('RunService').Stepped:Connect(Nocl)
-end
-
-function clip()
-	if Noclip then Noclip:Disconnect() end
-	Clip = true
-end
-
-noclip() -- to toggle noclip() and clip()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-melle"))()
     
 else
     warn("Account not in Config. Script Stopped.")
