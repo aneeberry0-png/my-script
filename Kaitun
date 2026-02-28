@@ -1,13 +1,3 @@
-getgenv().Configs = {
-    ["Account Join"] = {
-        "naa_kawaiix4",
-        "gau_neowo"
-    },
-    ["Account Join Raid"] = {
-        "sdc1gscr" 
-    },
-    ["Select Difficulty"] = "Hard"
-} 
 
 local CFG = getgenv().Configs
 local ply = game:GetService("Players")
