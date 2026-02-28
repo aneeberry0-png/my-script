@@ -1,4 +1,13 @@
-
+getgenv().Configs = {
+    ["Account Join"] = {
+        "gau_neowo"
+    },
+    ["Account Join Raid"] = {
+        "sdc1gscr",
+		"naa_kawaiix4"        
+    },
+    ["Select Difficulty"] = "Hard"
+} 
 local CFG = getgenv().Configs
 local ply = game:GetService("Players")
 local plr = ply.LocalPlayer
