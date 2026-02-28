@@ -6,7 +6,7 @@ getgenv().Configs = {
     ["Account Join Raid"] = {
         "sdc1gscr" 
     },
-    ["Select Difficulty"] = "Normal"
+    ["Select Difficulty"] = "Hard"
 } 
 
 local CFG = getgenv().Configs
@@ -48,7 +48,7 @@ local function CreateLabel(name, pos, text)
     label.BackgroundTransparency = 1
     label.Position = UDim2.new(0.5, 0, 0, pos)
     label.Size = UDim2.new(0, 300, 0, 18)
-    label.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+    label.Font = Enum.Font.GothamBold -- Fix lỗi font cho các executor khó tính nhó
     label.Text = text
     label.TextColor3 = Color3.fromRGB(0, 191, 255)
     label.TextSize = 16
@@ -67,7 +67,7 @@ _G.AccountJoin = false
 _G.StartDuggeon = false
 _G.FoundDungeon = nil
 
-local DungeonRadius = 20 -- Tăng bán kính để dễ nhận diện
+local DungeonRadius = 20
 local Dungeons = {
     {name = "Dungeon 1", center = Vector3.new(-487.545, 232.758, -433.559)},
     {name = "Dungeon 2", center = Vector3.new(-360.278, 232.758, -447.755)},
@@ -92,7 +92,7 @@ local function getPlayersInDungeon(center)
     return count
 end
 
--- Logic Acc Chủ (ann_2k11x)
+-- Logic Acc Chủ
 local function JoinDungeonTeleport()
     while task.wait(0.5) do
         if _G.AccjoinRaid then
@@ -102,9 +102,9 @@ local function JoinDungeonTeleport()
                     _G.FoundDungeon = dungeon.name
                     tp(CFrame.new(dungeon.center + Vector3.new(0, 3, 0)))
                     
-                    task.wait(4) -- Đợi các acc phụ bay vào
+                    task.wait(4)
                     _G.StartDuggeon = true
-                    _G.AccjoinRaid = false -- Dừng vòng lặp sau khi đã vào thành công
+                    _G.AccjoinRaid = false
                     break
                 end
             end
@@ -114,28 +114,43 @@ end
 
 -- Logic Acc Phụ (Follow)
 local function Accountteleaccjoin()
-    local leaderName = CFG["Account Join Raid"][1]:lower() -- Chuyển về chữ thường để so sánh nè
+    local leaderName = CFG["Account Join Raid"][1]:lower()
+    
     while task.wait(0.5) do
         if _G.AccountJoin then
             local leader = nil
-            -- Tìm leader trong danh sách player mà hông sợ viết hoa/thường nhó
-            for _, v in pairs(ply:GetPlayers()) do
+            for _, v in pairs(game.Players:GetPlayers()) do
                 if v.Name:lower() == leaderName then
                     leader = v
                     break
                 end
             end
-
+            
             if leader and leader.Character and leader.Character:FindFirstChild("HumanoidRootPart") then
-                local leaderPos = leader.Character.HumanoidRootPart.CFrame
-                if leaderPos.Position.Y > 200 then
-                    tp(leaderPos)
-                    StatusFarmLabel.Text = "Status Farm: Following " .. leader.Name
+                local leaderPos = leader.Character.HumanoidRootPart.Position
+                local isLeaderInPad = false
+                
+                for _, dungeon in pairs(Dungeons) do
+                    local distance = (leaderPos - dungeon.center).Magnitude
+                    if distance <= DungeonRadius then
+                        isLeaderInPad = true
+                        _G.FoundDungeon = dungeon.name
+                        break
+                    end
+                end
+
+                if isLeaderInPad then
+                    tp(leader.Character.HumanoidRootPart.CFrame)
+                    StatusFarmLabel.Text = "Status Farm: tp to pad"
+                    
+                    task.wait(2)
+                    _G.StartDuggeon = true
                 else
-                    StatusFarmLabel.Text = "Status Farm: Waiting for Leader to move"
+                    StatusFarmLabel.Text = "Status Farm: waiting leader"
+                    _G.StartDuggeon = false
                 end
             else
-                StatusFarmLabel.Text = "Status Farm: Searching for Leader..."
+                StatusFarmLabel.Text = "Status Farm: searching for leader"
             end
         end
     end
@@ -145,19 +160,30 @@ end
 local function StartDungeon()
     while task.wait(0.5) do
         if _G.StartDuggeon then
-            local padName = _G.FoundDungeon and _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
+            local padName = nil
+            
+            if _G.FoundDungeon == "Dungeon 1" then 
+                padName = "DUNGEON_TELEPORTER1"
+            elseif _G.FoundDungeon == "Dungeon 2" then
+                padName = "DUNGEON_TELEPORTER2"
+            elseif _G.FoundDungeon == "Dungeon 3" then
+                padName = "DUNGEON_TELEPORTER3"
+            end
+
             if padName then
-                local pad = workspace:WaitForChild("Map"):WaitForChild("Simulation Hub"):WaitForChild("Pads"):WaitForChild(padName)
-                pad.DungeonSettingsChanged:FireServer("Difficulty", CFG["Select Difficulty"])
-                task.wait(0.5)
-                pad.DungeonSettingsChanged:FireServer("Start")
+                pcall(function()
+                    local event = workspace:WaitForChild("Map"):WaitForChild("Simulation Hub"):WaitForChild("Pads"):WaitForChild(padName):WaitForChild("DungeonSettingsChanged")
+                    event:FireServer("Difficulty", CFG["Select Difficulty"])
+                    task.wait(0.5)
+                    event:FireServer("Start")
+                end)
                 _G.StartDuggeon = false
             end
         end
     end
 end
 
--- PHÂN LOẠI VÀ KHỞI CHẠY (Fix lỗi so sánh tên)
+-- PHÂN LOẠI VÀ KHỞI CHẠY
 local function Init()
     local name = plr.Name:lower()
     local isLeader = false
@@ -175,6 +201,7 @@ local function Init()
         StatusMobLabel.Text = "Your Account Status: Join Member"
         _G.AccountJoin = true
         task.spawn(Accountteleaccjoin)
+        task.spawn(StartDungeon)
     else
         StatusMobLabel.Text = "Your Account Status: Not in Config"
     end
@@ -184,7 +211,7 @@ Init()
 local Players = game:GetService("Players")
 local plr = Players.LocalPlayer
 
--- ===== TOẠ ĐỘ CỦA ANN NÈ =====
+-- ===== TOẠ ĐỘ =====
 local DungeonRadius = 10
 local Dungeons = {
     {name = "Dungeon 1", center = Vector3.new(-231.965485, 232.758224, -433.251038)},
@@ -194,25 +221,25 @@ local Dungeons = {
 -- =============================
 
 task.spawn(function()
-    while task.wait(1) do -- Tốc độ spam 1s cực bốc nhó
+    while task.wait(1) do -- Tốc độ spam 0.2s cực bốc nhó
         local char = plr.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        
+
         if hrp then
             for _, dungeon in pairs(Dungeons) do
-                -- Nếu ann bước vào phạm vi 10m của bệ nè
+                -- Nếu bước vào phạm vi 10m của bệ nè
                 if (hrp.Position - dungeon.center).Magnitude <= DungeonRadius then
-                    
+
                     -- Tìm cái bệ tương ứng để gửi lệnh nhó
                     local padName = dungeon.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
                     local padsFolder = workspace:FindFirstChild("Map") 
                         and workspace.Map:FindFirstChild("Simulation Hub") 
                         and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-                    
+
                     local pad = padsFolder and padsFolder:FindFirstChild(padName)
-                    
+
                     if pad then
-                        -- CHỈ SPAM LỆNH START THÔI NHÓ! (๑˃ᴗ˂)ﻭ
+
                         pcall(function()
                             pad.DungeonSettingsChanged:FireServer("Start")
                         end)
