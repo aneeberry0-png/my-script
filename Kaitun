@@ -1,9 +1,9 @@
 getgenv().Configs = {
     ["Account Join"] = {
-        "gau_neowo"
+        "gau_neowo",
+        "sdc1gscr"
     },
     ["Account Join Raid"] = {
-        "sdc1gscr",
 		"naa_kawaiix4"        
     },
     ["Select Difficulty"] = "Hard"
