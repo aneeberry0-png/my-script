@@ -7,6 +7,7 @@ local LUNGE_SPEED = 400
 local ENEMY_FOLDER_NAME = "Enemies" 
 local MAX_DISTANCE = 1000 -- Giới hạn khoảng cách quét quái
 local IGNORED_ENEMY = "Blank Buddy" -- Tên quái muốn bỏ qua
+local PLAYER_CHECK_RADIUS = 35 -- Bán kính né ngừi chơi khác nhó (〃￣ω￣〃)ゞ
 -- ===================
 
 local movementToken = 0
@@ -14,6 +15,19 @@ local movementToken = 0
 local function getHRP()
     local char = player.Character or player.CharacterAdded:Wait()
     return char:WaitForChild("HumanoidRootPart")
+end
+
+-- Hàm kiểm tra xem có ai khác đang ở gần quái hông mò (｡◕‿◕｡)
+local function isOtherPlayerNear(monsterHRP)
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local distToMonster = (monsterHRP.Position - otherPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if distToMonster <= PLAYER_CHECK_RADIUS then
+                return true -- Có ngừi rùi, meyy~ bảo ann nhường họ nhó (๑•́ ₃ •̀๑)
+            end
+        end
+    end
+    return false -- Trống trải waa~, dứt nó ik ann oii!
 end
 
 local function stopMovement()
@@ -46,33 +60,35 @@ local function lungeTo(targetPos)
         end
     end)
     
-    -- Đợi lướt xong đoạn này để lướt đoạn tiếp
     repeat task.wait() until elapsed >= duration or myToken ~= movementToken
 end
 
--- Vòng lặp gom quái tốc độ bàn thờ (Có giới hạn 1000 studs)
+-- Vòng lặp gom quái đã được meyy~ nâng cấp "lịch sự" hơn (≧◡≦)
 task.spawn(function()
     while true do
         local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
-        local myHRP = getHRP() -- Lấy vị trí hiện tại của mình để làm tâm đo
+        local myHRP = getHRP()
 
         if folder and myHRP then
             local enemies = folder:GetChildren()
             
             for _, enemy in pairs(enemies) do
-                -- BỎ QUA "Blank Buddy"
+                -- 1. BỎ QUA "Blank Buddy"
                 if enemy.Name == IGNORED_ENEMY then
-                    continue -- Lệnh này ép vòng lặp nhảy sang con quái tiếp theo luôn
+                    continue 
                 end
 
                 local eHRP = enemy:FindFirstChild("HumanoidRootPart")
                 local eHum = enemy:FindFirstChild("Humanoid")
                 
                 if eHRP and eHum and eHum.Health > 0 then
-                    -- Đo khoảng cách từ mình tới con quái
+                    -- 2. KIỂM TRA XEM CÓ AI ĐANG FARM CON NÀY HÔNG (35 STUDS)
+                    if isOtherPlayerNear(eHRP) then
+                        continue -- Thui thui nhường ngừi ta nhó, tìm con khác ik mò (っ´ω`)ﾉ
+                    end
+
+                    -- 3. NẾU TRONG TẦM 1000 STUDS THÌ MỚI LƯỚT
                     local dist = (eHRP.Position - myHRP.Position).Magnitude
-                    
-                    -- NẾU TRONG TẦM 1000 STUDS THÌ MỚI LƯỚT
                     if dist <= MAX_DISTANCE then
                         stopMovement()
                         lungeTo(eHRP.Position)
@@ -80,7 +96,6 @@ task.spawn(function()
                 end
             end
         end
-        -- Nếu không có quái nào trong tầm 1000, vòng lặp chạy trơn tuột xuống đây và nghỉ
         task.wait() 
     end
 end)
