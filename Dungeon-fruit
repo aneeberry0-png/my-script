@@ -28,7 +28,7 @@ task.spawn(function()
         equipFruitSlot()
     end
 end)
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/message%20(7).txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/next-dungeon"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/m1-attack"))()
 
 local Noclip = nil
