@@ -1,0 +1,122 @@
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- ================= SETTINGS =================
+local FLY_SPEED = 350
+local MAX_DISTANCE = 1000 -- Phạm vi quét quái [cite: 8, 11]
+local ENEMY_FOLDER_NAME = "Enemies" -- Thư mục chứa quái [cite: 8]
+-- ============================================
+
+local movementToken = 0 
+
+local function getHRP()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
+local function stopMovement()
+    movementToken += 1
+end
+
+-- Hàm thực hiện bay (Giữ nguyên logic bay mượt của bạn) [cite: 3]
+local function flyTo(targetPos)
+    stopMovement() 
+    local myToken = movementToken
+    local hrp = getHRP()
+    
+    local startPos = hrp.Position
+    local delta = targetPos - startPos
+    local distance = delta.Magnitude
+  
+    if distance < 3 then return end 
+
+    local direction = delta.Unit
+    local duration = distance / FLY_SPEED
+    local elapsed = 0
+
+    local connection
+    connection = RunService.Heartbeat:Connect(function(dt)
+        if myToken ~= movementToken then
+            connection:Disconnect()
+            return
+        end
+
+        elapsed += dt
+        local alpha = math.clamp(elapsed / duration, 0, 1)
+        hrp.CFrame = CFrame.new(startPos + direction * (distance * alpha))
+
+        if alpha >= 1 then
+            connection:Disconnect()
+        end
+    end)
+    
+    repeat task.wait() until elapsed >= duration or myToken ~= movementToken
+end
+
+-- Hàm tìm cổng gần nhất [cite: 5, 6]
+local function executeFlyToNearestExit()
+    local map = workspace:FindFirstChild("Map")
+    local dungeon = map and map:FindFirstChild("Dungeon")
+    if not dungeon then return end
+
+    local hrp = getHRP()
+    local nearestRoot = nil
+    local minDistance = math.huge
+
+    for _, room in ipairs(dungeon:GetChildren()) do
+        local exitPortal = room:FindFirstChild("ExitTeleporter")
+        if exitPortal then
+            local root = exitPortal:FindFirstChild("Root")
+            if root and root:IsA("BasePart") then
+                local dist = (hrp.Position - root.Position).Magnitude
+                if dist < minDistance then
+                    minDistance = dist
+                    nearestRoot = root
+                end
+            end
+        end
+    end
+
+    if nearestRoot then
+        flyTo(nearestRoot.Position + Vector3.new(0, 3, 0))
+    end
+end
+
+-- VÒNG LẶP KIỂM TRA QUÁI VÀ QUA CỔNG LIÊN TỤC
+task.spawn(function()
+    while true do
+        local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME) -- Tìm folder Enemies [cite: 8, 11]
+        local myHRP = getHRP() -- Lấy vị trí người chơi làm tâm 
+        local isRoomClear = true 
+
+        if folder and myHRP then
+            local enemies = folder:GetChildren()
+            
+            for _, enemy in pairs(enemies) do
+                -- Điều kiện lọc: Có HRP, Humanoid, Máu > 0 và KHÔNG PHẢI Shadow 
+                local eHRP = enemy:FindFirstChild("HumanoidRootPart")
+                local eHum = enemy:FindFirstChild("Humanoid")
+                
+                if eHRP and eHum and eHum.Health > 0 and enemy.Name ~= "Shadow" then
+                    -- Tính khoảng cách bằng .Magnitude [cite: 13]
+                    local dist = (eHRP.Position - myHRP.Position).Magnitude
+                    
+                    -- Nếu quái nằm trong phạm vi 1000 studs [cite: 14]
+                    if dist <= MAX_DISTANCE then
+                        isRoomClear = false -- Vẫn còn quái mục tiêu
+                        break 
+                    end
+                end
+            end
+        end
+
+        -- Chỉ khi isRoomClear vẫn là true (không còn quái hợp lệ trong tầm quét) 
+        if isRoomClear then
+            executeFlyToNearestExit()
+            task.wait(2) -- Nghỉ ngắn để map cập nhật phòng mới
+        end
+
+        task.wait(1) -- Tốc độ quét 1 giây/lần để tránh lag
+    end
+end)
