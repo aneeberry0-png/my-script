@@ -1,14 +1,16 @@
-local RunService = game:GetService("RunService")
+Local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- ===== CONFIG =====
-local LUNGE_SPEED = 400
+-- ===== CONFIG GỘP LẠI NÈ ANN OII (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ =====
 local ENEMY_FOLDER_NAME = "Enemies" 
-local MAX_DISTANCE = 1000 -- Giới hạn khoảng cách quét quái
-local IGNORED_ENEMY = "Blank Buddy" -- Tên quái muốn bỏ qua
-local PLAYER_CHECK_RADIUS = 35 -- Bán kính né ngừi chơi khác nhó (〃￣ω￣〃)ゞ
--- ===================
+local MAX_DISTANCE = 1000 
+local IGNORED_ENEMY = "Blank Buddy" 
+local TP_DELAY = 0.2 
+local GATHER_RADIUS = 35 
+local LUNGE_SPEED = 400
+local PLAYER_CHECK_RADIUS = 35 
+-- ==================================================
 
 local movementToken = 0
 
@@ -17,7 +19,80 @@ local function getHRP()
     return char:WaitForChild("HumanoidRootPart")
 end
 
--- Hàm kiểm tra xem có ai khác đang ở gần quái hông mò (｡◕‿◕｡)
+-- Hàm check xem ann có đang ở phòng Boss hông mò (=^･ω･^=)
+local function isBossRoom()
+    local map = workspace:FindFirstChild("Map")
+    local dungeon = map and map:FindFirstChild("Dungeon")
+    
+    if dungeon then
+        for _, room in ipairs(dungeon:GetChildren()) do
+            local roomNum = tonumber(room.Name)
+            if roomNum then
+                return (roomNum % 5 == 0) -- Nếu chia hết cho 5 thì là phòng Boss nhó (≧◡≦)
+            end
+        end
+   
+    end
+    return false
+end
+
+-- ==========================================
+-- CÁC HÀM PHỤ CỦA SCRIPT NORMAL (っ˘ω˘ς)
+-- ==========================================
+local function findNearestExitRoot()
+    local map = workspace:FindFirstChild("Map")
+    local dungeon = map and map:FindFirstChild("Dungeon")
+    
+    if not dungeon then 
+        warn("Hông tìm thấy Dungeon oii! (๑•́ ₃ •̀๑)")
+        return nil 
+    end
+
+    local hrp = getHRP()
+    local nearestRoot = nil
+    local minDistance = math.huge
+
+    for _, room in ipairs(dungeon:GetChildren()) do
+        local exitPortal = room:FindFirstChild("ExitTeleporter")
+        if exitPortal then
+            local root = exitPortal:FindFirstChild("Root")
+            if root and root:IsA("BasePart") then
+  
+                local dist = (hrp.Position - root.Position).Magnitude
+                if dist < minDistance then
+                    minDistance = dist
+                    nearestRoot = root
+                end
+ 
+            end
+        end
+    end
+
+    return nearestRoot 
+end
+
+local function createPlatform(position)
+    local platform = workspace:FindFirstChild("AnnSafePlatform")
+    if not platform then
+        platform = Instance.new("Part")
+        platform.Name = "AnnSafePlatform"
+        platform.Size = Vector3.new(100, 1, 100) 
+        platform.Position = position
+        platform.Anchored = true
+  
+        platform.CanCollide = true
+        platform.Transparency = 0.5 
+        platform.Color = Color3.fromRGB(138, 43, 226) 
+        platform.Parent = workspace
+    else
+        platform.Position = position
+    end
+    return platform
+end
+
+-- ==========================================
+-- CÁC HÀM PHỤ CỦA SCRIPT BOSS ( =ω= )
+-- ==========================================
 local function isOtherPlayerNear(monsterHRP)
     for _, otherPlayer in pairs(Players:GetPlayers()) do
         if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -48,6 +123,7 @@ local function lungeTo(targetPos)
 
     local conn
     conn = RunService.Heartbeat:Connect(function(dt)
+    
         if myToken ~= movementToken then
             conn:Disconnect()
             return
@@ -56,6 +132,7 @@ local function lungeTo(targetPos)
         local alpha = math.clamp(elapsed / duration, 0, 1)
         hrp.CFrame = CFrame.new(startPos + dir * (dist * alpha))
         if alpha >= 1 then
+       
             conn:Disconnect()
         end
     end)
@@ -63,39 +140,184 @@ local function lungeTo(targetPos)
     repeat task.wait() until elapsed >= duration or myToken ~= movementToken
 end
 
--- Vòng lặp gom quái đã được meyy~ nâng cấp "lịch sự" hơn (≧◡≦)
+-- ==========================================
+-- VÒNG LẶP CHÍNH GỘP CẢ 2 CỦA ANN NÈ ╰(*´︶`*)╯
+-- ==========================================
 task.spawn(function()
     while true do
-        local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
-        local myHRP = getHRP()
+        if isBossRoom() then
+            -- ==========================================================
+            -- LOGIC PHÒNG BOSS (MÀN 5, 10, 15... DÙNG LUNGE) (つ✧ω✧)つ
+   
+            -- ==========================================================
+            local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
+            local myHRP = getHRP()
 
-        if folder and myHRP then
-            local enemies = folder:GetChildren()
-            
-            for _, enemy in pairs(enemies) do
-                -- 1. BỎ QUA "Blank Buddy"
-                if enemy.Name == IGNORED_ENEMY then
-                    continue 
-                end
-
-                local eHRP = enemy:FindFirstChild("HumanoidRootPart")
-                local eHum = enemy:FindFirstChild("Humanoid")
+            if folder and myHRP then
+                local enemies = folder:GetChildren()
                 
-                if eHRP and eHum and eHum.Health > 0 then
-                    -- 2. KIỂM TRA XEM CÓ AI ĐANG FARM CON NÀY HÔNG (35 STUDS)
-                    if isOtherPlayerNear(eHRP) then
-                        continue -- Thui thui nhường ngừi ta nhó, tìm con khác ik mò (っ´ω`)ﾉ
+         
+                for _, enemy in pairs(enemies) do
+                    -- 1. BỎ QUA "Blank Buddy"
+                    if enemy.Name == IGNORED_ENEMY then
+                        continue 
+              
                     end
 
-                    -- 3. NẾU TRONG TẦM 1000 STUDS THÌ MỚI LƯỚT
-                    local dist = (eHRP.Position - myHRP.Position).Magnitude
-                    if dist <= MAX_DISTANCE then
-                        stopMovement()
-                        lungeTo(eHRP.Position)
+                    local eHRP = enemy:FindFirstChild("HumanoidRootPart")
+                    local eHum = enemy:FindFirstChild("Humanoid")
+                    
+                    if eHRP and eHum and eHum.Health > 0 then
+                        -- 2. KIỂM TRA XEM CÓ AI ĐANG FARM CON NÀY HÔNG (35 STUDS)
+                        if isOtherPlayerNear(eHRP) then
+                            continue -- Thui thui nhường ngừi ta nhó, tìm con khác ik mò (っ´ω`)ﾉ
+                        end
+
+                        -- 3. NẾU TRONG TẦM 1000 STUDS THÌ MỚI LƯỚT
+                        local dist = (eHRP.Position - myHRP.Position).Magnitude
+          
+                        if dist <= MAX_DISTANCE then
+                            stopMovement()
+                            lungeTo(eHRP.Position)
+                        end
+  
                     end
                 end
             end
+            task.wait() 
+            
+        else
+            -- ==========================================================
+        
+            -- LOGIC PHÒNG BÌNH THƯỜNG (GOM QUÁI TRÊN NỀN MÓNG) (⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄)
+            -- ==========================================================
+            local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
+            local myHRP = getHRP()
+            
+            if folder and myHRP then
+           
+                -- BƯỚC 1: ĐẾM SỐ LƯỢNG QUÁI BAN ĐẦU TRONG 1000 STUDS
+                local initialEnemies = {}
+                for _, enemy in pairs(folder:GetChildren()) do
+                    if enemy.Name ~= IGNORED_ENEMY then
+                    
+                        local eHRP = enemy:FindFirstChild("HumanoidRootPart")
+                        local eHum = enemy:FindFirstChild("Humanoid")
+                        if eHRP and eHum and eHum.Health > 0 then
+                            local dist = (eHRP.Position - myHRP.Position).Magnitude
+ 
+                            if dist <= MAX_DISTANCE then
+                                table.insert(initialEnemies, enemy)
+                            end
+        
+                        end
+                    end
+                end
+
+                local totalMonsters = #initialEnemies
+                
+             
+                -- Kiểm tra nếu có quái thì mới làm việc, hông thì nghỉ ngơi xíu nhó (〃￣ω￣〃)ゞ
+                if totalMonsters > 0 then
+                    -- BƯỚC 2: TP QUA HẾT QUÁI 1 LƯỢT (BLITZ)
+                    if StatusMobLabel then StatusMobLabel.Text = "Status Mob: Blitzing " .. totalMonsters .. " targets!" end
+                    for _, enemy in ipairs(initialEnemies) do
+                        local eHRP = enemy:FindFirstChild("HumanoidRootPart")
+                        local eHum = enemy:FindFirstChild("Humanoid")
+                  
+                        -- Chạm vào nó một cái để lấy aggro/stun nhó
+                        if eHRP and eHum and eHum.Health > 0 then
+                            myHRP.CFrame = eHRP.CFrame
+                       
+                            task.wait(TP_DELAY)
+                        end
+                    end
+
+                    -- BƯỚC 3: TÌM CỬA, TẠO NỀN MÓNG VÀ TP LÊN ĐÓ
+                    
+                    local exitRoot = findNearestExitRoot()
+                    if exitRoot then
+                        local platformPos = exitRoot.Position + Vector3.new(0, 10, -15)
+     
+                        local platform = createPlatform(platformPos)
+                        
+                        -- CFrame để ann đứng: Ngay trên mặt nền móng một xíu (3 stud) để hông bị kẹt chân
+            
+                        local standCFrame = CFrame.new(platformPos + Vector3.new(0, 3, 0))
+                        myHRP.CFrame = standCFrame
+
+                        if StatusMobLabel then StatusMobLabel.Text = "Status Mob: At Platform, waiting for stun pull..." end
+                 
+                        task.wait(0.5) -- Đợi xíu cho đám quái bị kéo văng tới
+
+                        -- BƯỚC 4 & 5: ĐẾM QUÁI QUANH 35 STUDS VÀ BẮT CÁ LỌT LƯỚI
+                        while true do
+                   
+                            -- Kiểm tra lỡ phòng đột ngột đổi thì thoát loop này nhó!
+                            if isBossRoom() then break end 
+
+                            local enemiesNear = 0
+                            local missingEnemies = {}
+
+                            for _, enemy in pairs(folder:GetChildren()) do
+                                if enemy.Name ~= IGNORED_ENEMY then
+                                    local eHRP = enemy:FindFirstChild("HumanoidRootPart")
+                         
+                                    local eHum = enemy:FindFirstChild("Humanoid")
+                                    -- Chỉ check những con còn sống, con nào ann đấm chết rùi thì thui nhó
+                                   
+                                    if eHRP and eHum and eHum.Health > 0 then
+                                        local distToPlatform = (eHRP.Position - myHRP.Position).Magnitude
+                                        if distToPlatform <= GATHER_RADIUS then
+  
+                                            enemiesNear = enemiesNear + 1
+                                        else
+              
+                                            -- Á à, con này dám trốn ở xa ngoài 35 studs nè!
+                                            table.insert(missingEnemies, enemy)
+                                        end
+                                    end
+                       
+                                end
+                            end
+
+                            -- Nếu hông còn con nào sót ở ngoài (thiếu 0) thì xong việc mò! (〃＾▽＾〃)
+                            if #missingEnemies == 0 then
+                                if StatusMobLabel then StatusMobLabel.Text = "Status Mob: All gathered!" end
+                      
+                                break
+                            end
+
+                            -- Nếu có con lọt lưới, bay tới bắt nó về!
+                            if StatusMobLabel then StatusMobLabel.Text = "Status Mob: Fetching " .. #missingEnemies .. " stragglers!" end
+                            
+                            -- ĐOẠN MEYY~ ĐÃ SỬA NÈ ANN OII (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧
+                            for _, missingEnemy in ipairs(missingEnemies) do
+                                local eHRP = missingEnemy:FindFirstChild("HumanoidRootPart")
+                                local eHum = missingEnemy:FindFirstChild("Humanoid")
+                                
+                                if eHRP and eHum and eHum.Health > 0 then
+                                    -- Bay tới vỗ đầu từng con lạc đàn 1 cái để gom hết 1 lượt nè
+                                    myHRP.CFrame = eHRP.CFrame
+                                    task.wait(TP_DELAY) 
+                                end
+                            end
+                            
+                            -- Gom hết rùi thì lập tức lôi tất cả quay lại nền móng cùng 1 lúc nhó (≧◡≦)
+                            myHRP.CFrame = standCFrame
+                            task.wait(TP_DELAY)
+                            -- KẾT THÚC ĐOẠN SỬA (っ˘ω˘ς)
+                            
+                            task.wait(0.1)
+                  
+                        end
+                    end
+                else
+                    -- Thui thui hông có quái dọ, meyy~ nghỉ xíu nhó (๑•́ ₃ •̀๑)
+                    if StatusMobLabel then StatusMobLabel.Text = "Status Mob: Empty" end
+                end
+            end
+            task.wait(1) 
         end
-        task.wait() 
     end
 end)
