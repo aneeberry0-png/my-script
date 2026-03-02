@@ -1,3 +1,19 @@
+getgenv().Configs = {
+    ["Account Join"] = {
+        Users = {
+            "naa_kawaiix4",
+            "gau_neowo"
+        },
+        ToolTip = "Blox Fruit" -- Nhóm này dùng trái ác quỷ nhó (≧◡≦)
+    },
+    ["Account Join Raid"] = {
+        Users = {
+            "sdc1gscr"
+        },
+        ToolTip = "Sword" -- Nhóm này đi raid dùng kiếm cho ngầu mò (〃´∀｀)
+    },
+    ["Select Difficulty"] = "Normal"
+}
 local CFG = getgenv().Configs
 local ply = game:GetService("Players")
 local plr = ply.LocalPlayer
@@ -323,5 +339,97 @@ spawn(function()
                 end
             end)
         end
+    end
+end)
+getgenv().Configs = {
+    ["Account Join"] = {
+        Users = {"naa_kawaiix4", "gau_neowo"},
+        ToolTip = "Blox Fruit" -- Nhóm này dùng trái ác quỷ nhó
+    },
+    ["Account Join Raid"] = {
+        Users = {"sdc1gscr"},
+        ToolTip = "Sword" -- Nhóm này dùng kiếm nè mò (〃´∀｀)
+    }
+}
+
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+
+-- Mặc định 1000 studs giấu trong code cho ann nhó (≧◡≦)
+local checkDistance = 1000
+
+-- Hàm tìm ToolTip phù hợp với tài khoản hiện tại nè (๑•́ ₃ •̀๑)
+local function getCurrentToolTip()
+    local myName = localPlayer.Name
+    for _, data in pairs(getgenv().Configs) do
+        if type(data) == "table" and data.Users then
+            for _, user in pairs(data.Users) do
+                if user == myName then
+                    return data.ToolTip
+                end
+            end
+        end
+    end
+    -- Nếu hông nằm trong list thì mặc định dùng Blox Fruit nhó
+    return "Blox Fruit"
+end
+
+local myToolTip = getCurrentToolTip()
+
+-- Hàm kiểm tra quái siêu tốc độ (๑˃ᴗ˂)ﻭ
+local function isEnemyNearby()
+    local character = localPlayer.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if not root then return false end
+    
+    local enemies = Workspace:FindFirstChild("Enemies") or Workspace:FindFirstChild("NPCs") or Workspace
+    
+    for _, v in pairs(enemies:GetChildren()) do
+        local eRoot = v:FindFirstChild("HumanoidRootPart")
+        local eHum = v:FindFirstChild("Humanoid")
+        
+        if eRoot and eHum and eHum.Health > 0 and v ~= character then
+            if (root.Position - eRoot.Position).Magnitude <= checkDistance then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- Hàm cầm đồ thần tốc theo Role mò (〃´∀｀)
+function equipToolByRole()
+    local character = localPlayer.Character
+    local backpack = localPlayer:FindFirstChild("Backpack")
+    
+    if character and backpack then
+        local hum = character:FindFirstChild("Humanoid")
+        local currentlyEquipped = character:FindFirstChildOfClass("Tool")
+        
+        -- Nếu đã cầm đúng món theo Role rồi thì thui thui nhó
+        if currentlyEquipped and currentlyEquipped.ToolTip == myToolTip then
+            return
+        end
+        
+        if hum then
+            for _, item in pairs(backpack:GetChildren()) do
+                if item:IsA("Tool") and item.ToolTip == myToolTip then
+                    hum:EquipTool(item)
+                    break
+                end
+            end
+        end
+    end
+end
+
+-- Vòng lặp siêu cấp chạy liên tục mò (っ˘ω˘ς)
+task.spawn(function()
+    while true do
+        task.wait() -- Chạy nhanh nhất có thể cho ann nhó
+        if isEnemyNearby() then
+            equipToolByRole()
+        end
+        -- Hông có quái thì nhường quyền cho ann điều khiển nè ╰(*´︶`*)╯
     end
 end)
