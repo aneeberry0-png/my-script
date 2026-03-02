@@ -1,16 +1,15 @@
 getgenv().Configs = {
     ["Account Join"] = {
         Users = {
-            "naa_kawaiix4",
             "gau_neowo"
         },
         ToolTip = "Blox Fruit" -- Nhóm này dùng trái ác quỷ nhó (≧◡≦)
     },
     ["Account Join Raid"] = {
         Users = {
-            "sdc1gscr"
+            "naa_kawaiix4"
         },
-        ToolTip = "Sword" -- Nhóm này đi raid dùng kiếm cho ngầu mò (〃´∀｀)
+        ToolTip = "Blox Fruit" -- Nhóm này đi raid dùng kiếm cho ngầu mò (〃´∀｀)
     },
     ["Select Difficulty"] = "Normal"
 }
