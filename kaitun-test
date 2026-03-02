@@ -1,7 +1,7 @@
 getgenv().Configs = { 
     ["Account Join"] = { 
         Users = { "gau_neowo"}, 
-        ToolTip = "Blox Fruit" 
+        ToolTip = "Melee" 
     }, 
     ["Account Join Raid"] = { 
         Users = { "naa_kawaiix4" }, 
