@@ -164,35 +164,6 @@ task.spawn(function()
         task.wait(0.1) 
     end
 end)
-local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-
--- Hàm để chọn Fruit (Ô số 2)
-function equipFruitSlot()
-    local character = localPlayer.Character
-    local backpack = localPlayer.Backpack
-    
-    if character then
-        -- Kiểm tra xem trên tay đã cầm Tool nào chưa
-        local currentlyEquipped = character:FindFirstChildOfClass("Tool")
-        
-        -- Nếu chưa cầm hoặc cái đang cầm không phải Fruit thì mới chọn
-        -- Ở đây mình tìm item dựa trên ToolTip là "Blox Fruit" (chuẩn của game)
-        for _, item in pairs(backpack:GetChildren()) do
-            if item:IsA("Tool") and item.ToolTip == "Melee" then
-                character.Humanoid:EquipTool(item)
-                break
-            end
-        end
-    end
-end
-
--- Chạy vòng lặp kiểm tra mỗi 1 giây để đảm bảo luôn cầm Fruit
-task.spawn(function()
-    while task.wait(0.1) do
-        equipFruitSlot()
-    end
-end)
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/next-dungeon"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/attack%20fast"))()
 
