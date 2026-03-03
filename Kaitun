@@ -303,26 +303,26 @@ spawn(function()
         end
     end
 end)
+local plr = game:GetService("Players").LocalPlayer 
+local checkDistance = 400
 
-local plr = game:GetService("Players").LocalPlayer
-local checkDistance = 1000 -- Khoảng cách để nhận diện quái mò
-
--- Hàm lấy ToolTip từ Config của ann
 local function getCurrentToolTip()
-    local myName = plr.Name
-    -- Kiểm tra xem Config có tồn tại hông nhó
+    local myName = string.lower(plr.Name)
+    local myDisplayName = string.lower(plr.DisplayName)
+    
     if getgenv().Configs then
         for _, data in pairs(getgenv().Configs) do
             if type(data) == "table" and data.Users then
                 for _, user in pairs(data.Users) do
-                    if user == myName then 
+                    local configUser = string.lower(user)
+                    if configUser == myName or configUser == myDisplayName then 
                         return data.ToolTip 
                     end
                 end
             end
         end
     end
-    return "Blox Fruit" -- Mặc định nếu hông tìm thấy tên ann mò
+    return nil
 end
 
 local myToolTip = getCurrentToolTip()
@@ -333,7 +333,6 @@ local function isEnemyNearby()
     local root = character and character:FindFirstChild("HumanoidRootPart")
     if not root then return false end
     
-    -- Tìm quái trong các folder phổ biến nhó
     local enemies = workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("NPCs") or workspace
     for _, v in pairs(enemies:GetChildren()) do
         local eRoot = v:FindFirstChild("HumanoidRootPart")
@@ -349,13 +348,14 @@ end
 
 -- Hàm thực hiện việc cầm vũ khí lên tay
 local function equipToolByRole()
+    if not myToolTip then return end
+
     local character = plr.Character
     local backpack = plr:FindFirstChild("Backpack")
     if character and backpack then
         local hum = character:FindFirstChild("Humanoid")
         local currentlyEquipped = character:FindFirstChildOfClass("Tool")
         
-        -- Nếu đang cầm đúng đồ rùi thì thôi mò ( =ω= )
         if currentlyEquipped and currentlyEquipped.ToolTip == myToolTip then return end
         
         if hum then
@@ -369,15 +369,20 @@ local function equipToolByRole()
     end
 end
 
--- Vòng lặp chạy ngầm để check liên tục nhó
+-- Vòng lặp kiểm tra theo ý của ann nè oii (〃＾▽＾〃)
 task.spawn(function()
     while true do
-        task.wait(0.5) -- Đợi xíu cho đỡ lag máy ann oii
-        if isEnemyNearby() then 
-            equipToolByRole() 
+        if isEnemyNearby() then
+            -- Có quái thì mới thực hiện cầm đồ nhó nhó (๑˃ᴗ˂)ﻭ
+            equipToolByRole()
+            task.wait(0.5) -- Check nhanh một xíu khi đang đánh nhau waa
+        else
+            -- Hông có quái thì nghỉ ngơi xíu ik mò
+            task.wait(2) 
         end
     end
 end)
+
 local Noclip = nil
 local Clip = nil
 
