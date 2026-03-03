@@ -438,3 +438,4 @@ elseif myRole == "Account Join" then
 else
     warn("Account not in Config. Script Stopped.")
 end
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Mark22028/Scripts/refs/heads/main/Anti-Afk.txt"))()
