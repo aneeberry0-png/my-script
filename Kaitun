@@ -1,14 +1,3 @@
-getgenv().Configs = { 
-    ["Account Join"] = { 
-        Users = { "gau_neowo"}, 
-        ToolTip = "Melee" 
-    }, 
-    ["Account Join Raid"] = { 
-        Users = { "naa_kawaiix4" }, 
-        ToolTip = "Blox Fruit" 
-    }, 
-    ["Select Difficulty"] = "Hard" 
-}
 local CFG = getgenv().Configs
 local ply = game:GetService("Players")
 local plr = ply.LocalPlayer
