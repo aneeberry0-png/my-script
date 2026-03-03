@@ -1,0 +1,27 @@
+local DungeonHubID = 73902483975735
+local TeleportService = game:GetService("TeleportService")
+local plr = game:GetService("Players").LocalPlayer
+
+local function AutoJoinHub()
+    if game.PlaceId ~= DungeonHubID then
+        print("not dungeon wait for joined dungeon")
+        
+ 
+        local screenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+        local textLabel = Instance.new("TextLabel", screenGui)
+        textLabel.Size = UDim2.new(1, 0, 0.1, 0)
+        textLabel.Position = UDim2.new(0, 0, 0.45, 0)
+        textLabel.BackgroundColor3 = Color3.new(0,0,0)
+        textLabel.BackgroundTransparency = 0.5
+        textLabel.TextColor3 = Color3.new(1,1,1)
+        textLabel.Text = "waiting to join"
+        textLabel.TextSize = 25
+
+       
+        task.wait(1)
+        TeleportService:Teleport(DungeonHubID, plr)
+    else
+        print("welcome to dungeon hub.")
+    end
+end
+AutoJoinHub()
