@@ -405,12 +405,17 @@ noclip() -- to toggle noclip() and clip()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/next-dungeon"))()
 local function GetRole()
     local myName = game:GetService("Players").LocalPlayer.Name:lower()
-    for _, n in pairs(getgenv().Configs["Account Join Raid"]) do
+    
+    -- Kiểm tra trong Account Join Raid
+    for _, n in pairs(getgenv().Configs["Account Join Raid"].Users) do
         if n:lower() == myName then return "Account Join Raid" end
     end
-    for _, n in pairs(getgenv().Configs["Account Join"]) do
+    
+    -- Kiểm tra trong Account Join
+    for _, n in pairs(getgenv().Configs["Account Join"].Users) do
         if n:lower() == myName then return "Account Join" end
     end
+    
     return nil
 end
 
@@ -427,5 +432,6 @@ elseif myRole == "Account Join" then
 else
     warn("Account not in Config. Script Stopped.")
 end
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Mark22028/Scripts/refs/heads/main/Anti-Afk.txt"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/join-dungeon"))()
