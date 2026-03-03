@@ -105,7 +105,7 @@ task.spawn(function()
                     if r and u and u.Health>0 then 
                         bAl=true
                         if (r.Position-h.Position).Magnitude<=MD then 
-                            if _G.StatusMobLabel then _G.StatusMobLabel.Text="Đang dứt: "..e.Name.." (≧◡≦)" end
+                            if _G.StatusMobLabel then _G.StatusMobLabel.Text="kill: "..e.Name.." (≧◡≦)" end
                             sM()lT(r.Position)
                         end 
                     end 
