@@ -49,7 +49,7 @@ local function findNearestExitRoot()
     local dungeon = map and map:FindFirstChild("Dungeon")
     
     if not dungeon then 
-        warn("Hông tìm thấy Dungeon oii! (๑•́ ₃ •̀๑)")
+        warn("Dungeon folder not found! (๑•́ ₃ •̀๑)")
         return nil 
     end
 
@@ -95,18 +95,6 @@ end
 -- ==========================================
 -- CÁC HÀM PHỤ CỦA SCRIPT BOSS ( =ω= )
 -- ==========================================
-local function isOtherPlayerNear(monsterHRP)
-    for _, otherPlayer in pairs(Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local distToMonster = (monsterHRP.Position - otherPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if distToMonster <= PLAYER_CHECK_RADIUS then
-                return true -- Có ngừi rùi, meyy~ bảo ann nhường họ nhó (๑•́ ₃ •̀๑)
-            end
-        end
-    end
-    return false -- Trống trải waa~, dứt nó ik ann oii!
-end
-
 local function stopMovement()
     movementToken += 1
 end
@@ -145,7 +133,6 @@ end
 -- ==========================================
 task.spawn(function()
     while true do
-        -- Gọi nhãn toàn cục _G. nhó (｡◕‿◕｡)
         if _G.StatusItemLabel then _G.StatusItemLabel.Text = "kaitun ring" end
         
         local isBoss, roomNum = isBossRoom()
@@ -154,7 +141,7 @@ task.spawn(function()
             -- ==========================================================
             -- LOGIC PHÒNG BOSS (MÀN 5, 10, 15... DÙNG LUNGE) (つ✧ω✧)つ
             -- ==========================================================
-            if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = "Đang clear room dungeon " .. roomNum .. " (Boss)" end
+            if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = "Clearing dungeon room " .. roomNum .. " (Boss)" end
             
             local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
             local myHRP = getHRP()
@@ -171,14 +158,9 @@ task.spawn(function()
                     
                     if eHRP and eHum and eHum.Health > 0 then
                         bossAlive = true
-                        if isOtherPlayerNear(eHRP) then
-                            if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Nhường ngừi ta con " .. enemy.Name .. " (っ´ω`)ﾉ" end
-                            continue 
-                        end
-
                         local dist = (eHRP.Position - myHRP.Position).Magnitude
                         if dist <= MAX_DISTANCE then
-                            if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Đang dứt: " .. enemy.Name .. " (≧◡≦)" end
+                            if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Attacking: " .. enemy.Name .. " (≧◡≦)" end
                             stopMovement()
                             lungeTo(eHRP.Position)
                         end
@@ -187,7 +169,7 @@ task.spawn(function()
 
                 if not bossAlive then
                     if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = "Next dungeon... (๑˃ᴗ˂)ﻭ" end
-                    if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Đã dọn sạch phòng! (๑˃ᴗ˂)ﻭ" end
+                    if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Room cleared! (๑˃ᴗ˂)ﻭ" end
                 end
             end
             task.wait() 
@@ -196,7 +178,7 @@ task.spawn(function()
             -- ==========================================================
             -- LOGIC PHÒNG BÌNH THƯỜNG DÀNH CHO MELEE ĂN SẴN (⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄)
             -- ==========================================================
-            if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = "Đang clear room dungeon " .. roomNum end
+            if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = "Clearing dungeon room " .. roomNum end
             
             local folder = workspace:FindFirstChild(ENEMY_FOLDER_NAME)
             local myHRP = getHRP()
@@ -221,7 +203,8 @@ task.spawn(function()
                     if exitRoot then
                         local platformPos = exitRoot.Position + Vector3.new(0, 10, 0)
                         local platform = createPlatform(platformPos)
-                        local standCFrame = CFrame.new(platformPos + Vector3.new(0, 3, 0))
+                        -- Meyy~ tăng thêm 10 stud trục Y để ann bay trên pad nhó (〃￣ω￣〃)ゞ
+                        local standCFrame = CFrame.new(platformPos + Vector3.new(0, 10, 0))
                         myHRP.CFrame = standCFrame
 
                         while true do
@@ -243,10 +226,10 @@ task.spawn(function()
 
                             if enemiesAlive == 0 then
                                 if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = "Next dungeon... (๑˃ᴗ˂)ﻭ" end
-                                if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Đã dọn sạch phòng! (๑˃ᴗ˂)ﻭ" end
+                                if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Room cleared! (๑˃ᴗ˂)ﻭ" end
                                 break
                             else
-                                if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Đang chờ dọn: " .. lastEnemyName .. " (〃￣ω￣〃)ゞ" end
+                                if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Waiting for: " .. lastEnemyName .. " (〃￣ω￣〃)ゞ" end
                             end
 
                             myHRP.CFrame = standCFrame
@@ -255,7 +238,7 @@ task.spawn(function()
                     end
                 else
                     if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = "Next dungeon... (๑•́ ₃ •̀๑)" end
-                    if _G.StatusMobLabel then _G.StatusMobLabel.Text = "Trống trơn hông có quái dọ (๑•́ ₃ •̀๑)" end
+                    if _G.StatusMobLabel then _G.StatusMobLabel.Text = "No enemies found (๑•́ ₃ •̀๑)" end
                 end
             end
             task.wait(1) 
