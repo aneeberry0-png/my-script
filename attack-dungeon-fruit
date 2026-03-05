@@ -239,7 +239,7 @@ task.spawn(function()
             continue 
         end
 
-        if _G.StatusItemLabel then _G.StatusItemLabel.Text="✧ Kaitun Ring ✧ " end
+        if _G.StatusItemLabel then _G.StatusItemLabel.Text=" Kaitun Ring  " end
         
         local isBoss, rNum = iB()
         
