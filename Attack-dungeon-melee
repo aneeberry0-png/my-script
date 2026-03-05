@@ -1,2 +1,164 @@
-local RS,Ps,p,W=game:GetService("RunService"),game:GetService("Players"),game:GetService("Players").LocalPlayer,workspace;local mT,oG=0,W.Gravity;local function getHRP()return(p.Character or p.CharacterAdded:Wait()):WaitForChild("HumanoidRootPart")end;local function stopM()mT=mT+1 end;local function dP()W.Gravity=0;local c=p.Character;if c then for _,v in ipairs(c:GetDescendants())do if v:IsA("BasePart")then v.CanCollide=false end end end end;local function getRD()local m=W:FindFirstChild("Map");local d=m and m:FindFirstChild("Dungeon");if not d then return nil,0,0,false end;local maxR,curR,minD,cRO=0,0,math.huge,nil;local hrp=getHRP()for _,r in ipairs(d:GetChildren())do local n=tonumber(r.Name)if n then if n>maxR then maxR=n end;local ep=r:FindFirstChild("ExitTeleporter")if ep and ep:FindFirstChild("Root")then local ds=(hrp.Position-ep.Root.Position).Magnitude;if ds<minD then minD=ds;curR=n;cRO=r end end end end;return cRO,curR,maxR,(maxR>0 and maxR%5==0)end;local function getM()local f=W:FindFirstChild("Enemies")if not f then return nil end;for _,e in pairs(f:GetChildren())do if e.Name~="Blank Buddy"and e.Name~="Shadow"then local eh,em=e:FindFirstChild("HumanoidRootPart"),e:FindFirstChild("Humanoid")if eh and em and em.Health>0 then return e end end end;return nil end;local function fly(tP)stopM()local tk,hrp,sP=mT,getHRP(),getHRP().Position;local dl,el=tP-sP,0;local ds=dl.Magnitude;if ds<3 then return end;local dr,du=dl.Unit,ds/350;local cn;cn=RS.Heartbeat:Connect(function(dt)dP()if tk~=mT then cn:Disconnect()return end;el=el+dt;local a=math.clamp(el/du,0,1)hrp.CFrame=CFrame.new(sP+dr*(ds*a))if a>=1 then cn:Disconnect()end end)repeat task.wait(0.1)until el>=du or tk~=mT end;local function trk(e)stopM()local tk,hrp,eh,em=mT,getHRP(),e:FindFirstChild("HumanoidRootPart"),e:FindFirstChild("Humanoid")local cn;cn=RS.Heartbeat:Connect(function(dt)dP()if tk~=mT or not eh or not eh.Parent or not em or em.Health<=0 then cn:Disconnect()return end;local tP,cP=eh.Position+Vector3.new(0,25,0),getHRP().Position;local dr=tP-cP;local ds=dr.Magnitude;if ds>1 then hrp.CFrame=CFrame.new(cP+dr.Unit*math.min(ds,400*dt))else hrp.CFrame=CFrame.new(tP)end end)repeat task.wait(0.1)until tk~=mT or not eh or not em or em.Health<=0 end;task.spawn(function()while true do dP()local rO,cR,mR,isB=getRD()if mR>0 then if cR<mR then if rO then fly(rO.ExitTeleporter.Root.Position+Vector3.new(0,3,0))task.wait(1.5)end else local tE=getM()if tE then if isB then task.wait(1)else trk(tE)end else if rO then fly(rO.ExitTeleporter.Root.Position+Vector3.new(0,3,0))task.wait(1.5)end end end end;task.wait(0.1)end end)
+--[[ 
+    MODIFIED BY meyy~ 
+    - Added UI change tracking to prevent spamming
+    - Kept original fly and track logic intact
+]]
 
+local RS, Ps, p, W = game:GetService("RunService"), game:GetService("Players"), game:GetService("Players").LocalPlayer, workspace;
+local mT, oG = 0, W.Gravity;
+
+local function getHRP()
+    return (p.Character or p.CharacterAdded:Wait()):WaitForChild("HumanoidRootPart")
+end;
+
+local function stopM()
+    mT = mT + 1 
+end;
+
+local function dP()
+    W.Gravity = 0;
+    local c = p.Character;
+    if c then 
+        for _, v in ipairs(c:GetDescendants()) do 
+            if v:IsA("BasePart") then 
+                v.CanCollide = false 
+            end 
+        end 
+    end 
+end;
+
+local function getRD()
+    local m = W:FindFirstChild("Map");
+    local d = m and m:FindFirstChild("Dungeon");
+    if not d then return nil, 0, 0, false end;
+    
+    local maxR, curR, minD, cRO = 0, 0, math.huge, nil;
+    local hrp = getHRP()
+    
+    for _, r in ipairs(d:GetChildren()) do 
+        local n = tonumber(r.Name)
+        if n then 
+            if n > maxR then maxR = n end;
+            local ep = r:FindFirstChild("ExitTeleporter")
+            if ep and ep:FindFirstChild("Root") then 
+                local ds = (hrp.Position - ep.Root.Position).Magnitude;
+                if ds < minD then 
+                    minD = ds; 
+                    curR = n; 
+                    cRO = r 
+                end 
+            end 
+        end 
+    end;
+    return cRO, curR, maxR, (maxR > 0 and maxR % 5 == 0)
+end;
+
+local function getM()
+    local f = W:FindFirstChild("Enemies")
+    if not f then return nil end;
+    for _, e in pairs(f:GetChildren()) do 
+        if e.Name ~= "Blank Buddy" and e.Name ~= "Shadow" then 
+            local eh, em = e:FindFirstChild("HumanoidRootPart"), e:FindFirstChild("Humanoid")
+            if eh and em and em.Health > 0 then 
+                return e 
+            end 
+        end 
+    end;
+    return nil 
+end;
+
+local function fly(tP)
+    stopM()
+    local tk, hrp, sP = mT, getHRP(), getHRP().Position;
+    local dl, el = tP - sP, 0;
+    local ds = dl.Magnitude;
+    if ds < 3 then return end;
+    local dr, du = dl.Unit, ds / 350;
+    local cn;
+    cn = RS.Heartbeat:Connect(function(dt)
+        dP()
+        if tk ~= mT then 
+            cn:Disconnect()
+            return 
+        end;
+        el = el + dt;
+        local a = math.clamp(el / du, 0, 1)
+        hrp.CFrame = CFrame.new(sP + dr * (ds * a))
+        if a >= 1 then 
+            cn:Disconnect()
+        end 
+    end)
+    repeat task.wait(0.1) until el >= du or tk ~= mT 
+end;
+
+local function trk(e)
+    stopM()
+    local tk, hrp, eh, em = mT, getHRP(), e:FindFirstChild("HumanoidRootPart"), e:FindFirstChild("Humanoid")
+    local cn;
+    cn = RS.Heartbeat:Connect(function(dt)
+        dP()
+        if tk ~= mT or not eh or not eh.Parent or not em or em.Health <= 0 then 
+            cn:Disconnect()
+            return 
+        end;
+        local tP, cP = eh.Position + Vector3.new(0, 25, 0), getHRP().Position;
+        local dr = tP - cP;
+        local ds = dr.Magnitude;
+        if ds > 1 then 
+            hrp.CFrame = CFrame.new(cP + dr.Unit * math.min(ds, 400 * dt))
+        else 
+            hrp.CFrame = CFrame.new(tP)
+        end 
+    end)
+    repeat task.wait(0.1) until tk ~= mT or not eh or not em or em.Health <= 0 
+end;
+
+-- UI STATE TRACKER (Meyy~'s little secret to keep things tidy)
+local lastFarmStatus = ""
+local lastMobStatus = ""
+
+local function updateStatus(farmText, mobText)
+    if farmText and farmText ~= lastFarmStatus then
+        lastFarmStatus = farmText
+        if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = farmText end
+    end
+    if mobText and mobText ~= lastMobStatus then
+        lastMobStatus = mobText
+        if _G.StatusMobLabel then _G.StatusMobLabel.Text = mobText end
+    end
+end
+
+task.spawn(function()
+    while true do 
+        dP()
+        local rO, cR, mR, isB = getRD()
+        
+        if mR > 0 then 
+            if cR < mR then 
+                if rO then 
+                    updateStatus("Moving to next room", "Flying to portal")
+                    fly(rO.ExitTeleporter.Root.Position + Vector3.new(0, 3, 0))
+                    task.wait(1.5)
+                end 
+            else 
+                local tE = getM()
+                if tE then 
+                    if isB then 
+                        updateStatus("Boss room active", "Waiting for boss")
+                        task.wait(1)
+                    else 
+                        updateStatus("Clearing room " .. mR, "Tracking: " .. tE.Name)
+                        trk(tE)
+                    end 
+                else 
+                    if rO then 
+                        updateStatus("Room clear", "Moving to next portal")
+                        fly(rO.ExitTeleporter.Root.Position + Vector3.new(0, 3, 0))
+                        task.wait(1.5)
+                    end 
+                end 
+            end 
+        end;
+        task.wait(0.1)
+    end 
+end)
