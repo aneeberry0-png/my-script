@@ -1,3 +1,9 @@
+--[[ 
+    MODIFIED BY meyy~ 
+    - Moved UI Text updates out of main loops to prevent spamming
+    - Kept all original logic and functions intact
+]]
+
 local R=game:GetService("RunService")
 local P=game:GetService("Players")
 local TS=game:GetService("TweenService")
@@ -34,6 +40,341 @@ local function iB()
             local n=tonumber(r.Name)
             if n and n>mR then mR=n end 
         end;
+        if mR>0 then return(mR%5==0),mR end 
+    end;
+    return false,0 
+end;
+
+local function fE()
+    local m=workspace:FindFirstChild("Map")
+    local d=m and m:FindFirstChild("Dungeon")
+    if not d then return nil end;
+    local h=gH()
+    local n=nil;
+    local mD=math.huge;
+    for _,r in ipairs(d:GetChildren())do 
+        local e=r:FindFirstChild("ExitTeleporter")
+        if e then 
+            local t=e:FindFirstChild("Root")
+            if t and t:IsA("BasePart")then 
+                local dist=(h.Position-t.Position).Magnitude;
+                if dist<mD then mD=dist;n=t end 
+            end 
+        end 
+    end;
+    return n 
+end;
+
+local function cP(pos)
+    local f=workspace:FindFirstChild("AnnSafePlatform")
+    if not f then 
+        f=Instance.new("Part")
+        f.Name="AnnSafePlatform"
+        f.Size=Vector3.new(100,1,100)
+        f.Position=pos;
+        f.Anchored=true;
+        f.CanCollide=true;
+        f.Transparency=0.5;
+        f.Color=Color3.fromRGB(138,43,226)
+        f.Parent=workspace 
+    else 
+        f.Position=pos 
+    end;
+    return f 
+end;
+
+local function sM()mT=mT+1 end;
+
+local function lT(tP)
+    local h=gH()
+    local k=mT;
+    local dist=(tP-h.Position).Magnitude;
+    if dist<0.5 then return end;
+    local dur=dist/LS;
+    local ti=TweenInfo.new(dur,Enum.EasingStyle.Linear)
+    local tw=TS:Create(h,ti,{CFrame=CFrame.new(tP)})
+    tw:Play()
+    repeat task.wait()until tw.PlaybackState==Enum.PlaybackState.Completed or k~=mT
+    if k~=mT then tw:Cancel()end
+end;
+
+local function flyToNearestExit(targetPos)
+    sM() 
+    local myToken = mT
+    local hrp = gH()
+    local startPos = hrp.Position
+    local delta = targetPos - startPos
+    local distance = delta.Magnitude
+    
+    if distance < 3 then return end 
+
+    local direction = delta.Unit
+    local duration = distance / FLY_SPEED
+    local elapsed = 0
+
+    local connection
+    connection = R.Heartbeat:Connect(function(dt)
+        if myToken ~= mT then
+            connection:Disconnect()
+            return
+        end
+
+        elapsed += dt
+        local alpha = math.clamp(elapsed / duration, 0, 1)
+        hrp.CFrame = CFrame.new(startPos + direction * (distance * alpha))
+
+        if alpha >= 1 then
+            connection:Disconnect()
+        end
+    end)
+    
+    repeat task.wait() until elapsed >= duration or myToken ~= mT
+end
+
+local function executeFlyToNearestExit()
+    local map = workspace:FindFirstChild("Map")
+    local dungeon = map and map:FindFirstChild("Dungeon")
+    if not dungeon then return end
+
+    local hrp = gH()
+    local nearestRoot = nil
+    local minDistance = math.huge
+
+    for _, room in ipairs(dungeon:GetChildren()) do
+        local exitPortal = room:FindFirstChild("ExitTeleporter")
+        if exitPortal then
+            local root = exitPortal:FindFirstChild("Root")
+            if root and root:IsA("BasePart") then
+                local dist = (hrp.Position - root.Position).Magnitude
+                if dist < minDistance then
+                    minDistance = dist
+                    nearestRoot = root
+                end
+            end
+        end
+    end
+
+    if nearestRoot then
+        flyToNearestExit(nearestRoot.Position + Vector3.new(0, 3, 0))
+    end
+end
+
+local function getCurrentRoomNumber()
+    local m=workspace:FindFirstChild("Map")
+    local d=m and m:FindFirstChild("Dungeon")
+    if not d then return 0 end
+    local h=gH()
+    if not h then return 0 end
+    local cR=0
+    local mD=math.huge
+    for _,r in ipairs(d:GetChildren())do 
+        local n=tonumber(r.Name)
+        if n then
+            local e=r:FindFirstChild("ExitTeleporter")
+            local t=e and e:FindFirstChild("Root")
+            if t then
+                local dist=(h.Position-t.Position).Magnitude
+                if dist<mD then mD=dist;cR=n end
+            end
+        end
+    end
+    return cR
+end
+
+local Ply = game:GetService("Players")
+local plr = Ply.LocalPlayer
+
+task.spawn(function()
+    while not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") do
+        pcall(function()
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", "Marines")
+        end)
+        task.wait()
+    end
+end)
+
+_G.KillH = false 
+
+local Attack = {}
+local Sec = 0.1 
+
+Attack.Alive = function(model)
+    if not model then
+        return
+    end
+    local Humanoid = model:FindFirstChild("Humanoid")
+    return Humanoid and Humanoid.Health > 0
+end
+
+task.spawn(function()
+    while task.wait(Sec) do
+        if _G.KillH then
+            local enemyFolder = workspace:FindFirstChild("Enemies")
+            if enemyFolder then
+                for _, v in pairs(enemyFolder:GetChildren()) do
+                    if v.Name ~= "Blank Buddy" and Attack.Alive(v) then
+                        pcall(function()
+                            repeat
+                                task.wait(Sec)
+                                if sethiddenproperty then
+                                    pcall(sethiddenproperty, plr, "SimulationRadius", math.huge)
+                                end
+                                v:BreakJoints()
+                                if v:FindFirstChild("Humanoid") then
+                                    v.Humanoid.Health = 0
+                                end
+                                if v:FindFirstChild("HumanoidRootPart") then
+                                    v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                                end
+                            until not _G.KillH or not v.Parent or not Attack.Alive(v)
+                        end)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- UI TEXT SETTINGS (Initialized once outside)
+if _G.StatusItemLabel then _G.StatusItemLabel.Text = "Kaitun Ring" end
+
+task.spawn(function()
+    local lastFarmStatus = ""
+    local lastMobStatus = ""
+
+    local function updateUI(farmTxt, mobTxt)
+        if farmTxt and farmTxt ~= lastFarmStatus then
+            lastFarmStatus = farmTxt
+            if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = farmTxt end
+        end
+        if mobTxt and mobTxt ~= lastMobStatus then
+            lastMobStatus = mobTxt
+            if _G.StatusMobLabel then _G.StatusMobLabel.Text = mobTxt end
+        end
+    end
+
+    while true do 
+        if not isAlive() then
+            updateUI("Character Died Resetting", lastMobStatus)
+            sM() 
+            p.CharacterAdded:Wait() 
+            task.wait(1)
+            continue 
+        end
+
+        local isBoss, rNum = iB()
+        local currentRoom = getCurrentRoomNumber()
+        
+        if currentRoom > 0 and currentRoom < rNum then
+            updateUI("Tween To Portal " .. rNum, "Tween To Portal")
+            executeFlyToNearestExit()
+            task.wait(2) 
+            continue 
+        end
+
+        if isBoss then 
+            updateUI("Clear room dungeon " .. rNum .. " Boss", lastMobStatus)
+            local f = workspace:FindFirstChild(EF)
+            if f then 
+                local bossAlive = false
+                local targetBossName = ""
+                for _, e in pairs(f:GetChildren()) do 
+                    if e.Name == IE then continue end
+                    local u = e:FindFirstChild("Humanoid")
+                    if u and u.Health > 0 then 
+                        bossAlive = true
+                        targetBossName = e.Name
+                        break
+                    end 
+                end 
+                
+                if bossAlive then
+                    updateUI(lastFarmStatus, "Killing boss " .. targetBossName)
+                    _G.KillH = true
+                else
+                    updateUI("Boss is gone", "Safe mode on")
+                    _G.KillH = false
+                end
+            end
+            task.wait(0.4) 
+            
+        else 
+            _G.KillH = false
+            local f = workspace:FindFirstChild(EF)
+            local h = gH()
+            
+            if f and h then 
+                local i = {}
+                for _, e in pairs(f:GetChildren()) do 
+                    if e.Name ~= IE then 
+                        local r = e:FindFirstChild("HumanoidRootPart")
+                        local u = e:FindFirstChild("Humanoid")
+                        if r and u and u.Health > 0 then 
+                            table.insert(i, e)
+                        end 
+                    end 
+                end;
+                
+                if #i > 0 then 
+                    updateUI("Clear " .. rNum, lastMobStatus)
+                    for _, e in ipairs(i) do 
+                        if not isAlive() then break end
+                        local r = e:FindFirstChild("HumanoidRootPart")
+                        if r then h.CFrame = r.CFrame; task.wait(TD) end 
+                    end;
+                    
+                    local x = fE()
+                    if x and isAlive() then 
+                        local pP = x.Position + Vector3.new(0, 10, 0)
+                        local pad = cP(pP)
+                        local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
+                        h.CFrame = sC; task.wait(0.1)
+                        
+                        while isAlive() do 
+                            local checkBoss, currentRoomVar = iB()
+                            if checkBoss then break end;
+                            local m = {}
+                            local lastEnemyName = ""
+                            local enemiesAlive = 0
+                            
+                            for _, e in pairs(f:GetChildren()) do 
+                                if e.Name ~= IE then 
+                                    local r = e:FindFirstChild("HumanoidRootPart")
+                                    local u = e:FindFirstChild("Humanoid")
+                                    if r and u and u.Health > 0 then
+                                        enemiesAlive = enemiesAlive + 1
+                                        lastEnemyName = e.Name
+                                        if (r.Position - h.Position).Magnitude > GR then 
+                                            table.insert(m, e)
+                                        end 
+                                    end 
+                                end 
+                            end;
+                            
+                            if enemiesAlive == 0 then
+                                updateUI("Tween To Portal", "Clear")
+                                break
+                            else
+                                updateUI(lastFarmStatus, "Kill " .. lastEnemyName)
+                            end
+
+                            if #m == 0 then break end;
+                            for _, e in ipairs(m) do 
+                                if not isAlive() then break end
+                                local r = e:FindFirstChild("HumanoidRootPart")
+                                if r then h.CFrame = r.CFrame; task.wait(TD) end 
+                            end;
+                            if isAlive() then h.CFrame = sC; task.wait(TD); task.wait(0.1) end
+                        end 
+                    end 
+                else
+                    updateUI("Tween To Portal", "Clear")
+                end
+            end;
+            task.wait(1)
+        end 
+    end 
+end)
         if mR>0 then return(mR%5==0),mR end 
     end;
     return false,0 
