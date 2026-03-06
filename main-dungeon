@@ -1,0 +1,26 @@
+
+local function GetRole()
+    local myName = plr.Name:lower()
+    for _, n in pairs(getgenv().Configs["Account Join Raid"].Users) do
+        if n:lower() == myName then return "Account Join Raid" end
+    end
+    for _, n in pairs(getgenv().Configs["Account Join"].Users) do
+        if n:lower() == myName then return "Account Join" end
+    end
+    return nil
+end
+
+local myRole = GetRole()
+if myRole == "Account Join Raid" then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-fruit"))()
+elseif myRole == "Account Join" then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-melle"))()
+else
+    warn("Account not in Config. Script Stopped.")
+end
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Mark22028/Scripts/refs/heads/main/Anti-Afk.txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/join-dungeon"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/sp"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/UI"))()
