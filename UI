@@ -1,0 +1,59 @@
+-------------------------------------------------------------------------
+-- UI SECTION (SEPARATED BY meyy~)
+-------------------------------------------------------------------------
+local StatusGui = Instance.new("ScreenGui")
+StatusGui.Name = "StatusOverlay"
+StatusGui.Parent = game:GetService("CoreGui")
+StatusGui.ResetOnSpawn = false
+
+local StatusMain = Instance.new("Frame")
+StatusMain.Name = "Main"
+StatusMain.Parent = StatusGui
+StatusMain.AnchorPoint = Vector2.new(0.5, 0.5)
+StatusMain.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+StatusMain.BackgroundTransparency = 0.5
+StatusMain.Position = UDim2.new(0.5, 0, 0.05, 0)
+StatusMain.Size = UDim2.new(0, 320, 0, 88)
+
+local StatusStroke = Instance.new("UIStroke")
+StatusStroke.Parent = StatusMain
+StatusStroke.Color = Color3.fromRGB(138, 43, 226)
+StatusStroke.Thickness = 2.5
+
+local function CreateLabel(name, pos, text)
+    local label = Instance.new("TextLabel")
+    label.Name = name
+    label.Parent = StatusMain
+    label.AnchorPoint = Vector2.new(0.5, 0)
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0.5, 0, 0, pos)
+    label.Size = UDim2.new(0, 300, 0, 18)
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(0, 191, 255)
+    label.TextSize = 16
+    return label
+end
+
+_G.StatusItemLabel = CreateLabel("StatusItem", 10, "Status Script: Running")
+_G.StatusFarmLabel = CreateLabel("StatusFarm", 35, "Status Farm: N/A")
+_G.StatusMobLabel = CreateLabel("StatusMob", 60, "Farm Mob: N/A")
+
+-- UI OPTIMIZER: Only update if text actually changes
+local lastFarmText = ""
+local lastMobText = ""
+
+local function SetFarmStatus(text)
+    if text ~= lastFarmText then
+        lastFarmText = text
+        _G.StatusFarmLabel.Text = text
+    end
+end
+
+local function SetMobStatus(text)
+    if text ~= lastMobText then
+        lastMobText = text
+        _G.StatusMobLabel.Text = text
+    end
+end
+-------------------------------------------------------------------------
