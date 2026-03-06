@@ -291,3 +291,4 @@ end
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Mark22028/Scripts/refs/heads/main/Anti-Afk.txt"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/join-dungeon"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/sp"))()
