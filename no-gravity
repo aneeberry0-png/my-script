@@ -1,0 +1,32 @@
+-- ==========================================
+-- PHẦN 1: XỬ LÝ TRỌNG LỰC TOÀN CỤC
+-- ==========================================
+-- Meyy~ sẽ đưa trọng lực về 0 để mọi thứ bay lơ lửng nhó (っ˘ω˘ς)
+game.Workspace.Gravity = 0
+
+-- ==========================================
+-- PHẦN 2: XÓA LỰC ĐẨY VẬT LÝ TRÊN NHÂN VẬT
+-- ==========================================
+-- Meyy~ sẽ lặp qua nhân vật của ann để vô hiệu hóa các tính chất vật lý nhó
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+for _, part in pairs(character:GetDescendants()) do
+    if part:IsA("BasePart") then
+        -- Vô hiệu hóa lực đẩy và va chạm vật lý phản hồi
+        part.Velocity = Vector3.new(0, 0, 0)
+        part.RotVelocity = Vector3.new(0, 0, 0)
+        part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0) -- Friction, Elasticity = 0
+    end
+end
+
+-- ==========================================
+-- PHẦN 3: DUY TRÌ TRẠNG THÁI (VÒNG LẶP)
+-- ==========================================
+-- Meyy~ chạy vòng lặp để đảm bảo không có lực nào "lén" tác động vào ann nhó (๑˃ᴗ˂)ﻭ
+game:GetService("RunService").Heartbeat:Connect(function()
+    if character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+        character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+    end
+end)
