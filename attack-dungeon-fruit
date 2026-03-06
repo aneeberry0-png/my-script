@@ -1,7 +1,9 @@
 --[[ 
-    MODIFIED BY meyy~ 
-    - Moved UI Text updates out of main loops to prevent spamming
-    - Kept all original logic and functions intact
+    FULL SCRIPT MODIFIED BY meyy~ 
+    - [Meyy Update] Target Rooms: 5, 10, 15, 20
+    - [Meyy Update] Simple Phase 2: HP < 37% -> Wait 4s -> isPhaseTwo = true
+    - [Meyy Update] Action: Safe Mode at 1000 Studs (Only Phase 2 & < 70% HP)
+    - [Meyy Update] UI: 100% English, no emojis
 ]]
 
 local R=game:GetService("RunService")
@@ -11,15 +13,15 @@ local p=P.LocalPlayer;
 workspace.Gravity=0;
 local EF="Enemies"
 local IE="Blank Buddy"
+local PROP_NAME = "PropHitboxPlaceholder" 
 local TD=0.075;
 local GR=35;
 local LS=400;
 local PR=35;
 local mT=0;
-
 local FLY_SPEED = 350
-local MAX_DISTANCE = 1000
 
+-- [Section 1]: Utility Functions
 local function gH()
     local c=p.Character or p.CharacterAdded:Wait()
     return c:WaitForChild("HumanoidRootPart")
@@ -40,7 +42,9 @@ local function iB()
             local n=tonumber(r.Name)
             if n and n>mR then mR=n end 
         end;
-        if mR>0 then return(mR%5==0),mR end 
+        if mR>0 then 
+            return(mR==5 or mR==10 or mR==15 or mR==20),mR 
+        end 
     end;
     return false,0 
 end;
@@ -85,19 +89,6 @@ end;
 
 local function sM()mT=mT+1 end;
 
-local function lT(tP)
-    local h=gH()
-    local k=mT;
-    local dist=(tP-h.Position).Magnitude;
-    if dist<0.5 then return end;
-    local dur=dist/LS;
-    local ti=TweenInfo.new(dur,Enum.EasingStyle.Linear)
-    local tw=TS:Create(h,ti,{CFrame=CFrame.new(tP)})
-    tw:Play()
-    repeat task.wait()until tw.PlaybackState==Enum.PlaybackState.Completed or k~=mT
-    if k~=mT then tw:Cancel()end
-end;
-
 local function flyToNearestExit(targetPos)
     sM() 
     local myToken = mT
@@ -105,29 +96,18 @@ local function flyToNearestExit(targetPos)
     local startPos = hrp.Position
     local delta = targetPos - startPos
     local distance = delta.Magnitude
-    
     if distance < 3 then return end 
-
     local direction = delta.Unit
     local duration = distance / FLY_SPEED
     local elapsed = 0
-
     local connection
     connection = R.Heartbeat:Connect(function(dt)
-        if myToken ~= mT then
-            connection:Disconnect()
-            return
-        end
-
+        if myToken ~= mT then connection:Disconnect() return end
         elapsed += dt
         local alpha = math.clamp(elapsed / duration, 0, 1)
         hrp.CFrame = CFrame.new(startPos + direction * (distance * alpha))
-
-        if alpha >= 1 then
-            connection:Disconnect()
-        end
+        if alpha >= 1 then connection:Disconnect() end
     end)
-    
     repeat task.wait() until elapsed >= duration or myToken ~= mT
 end
 
@@ -135,11 +115,9 @@ local function executeFlyToNearestExit()
     local map = workspace:FindFirstChild("Map")
     local dungeon = map and map:FindFirstChild("Dungeon")
     if not dungeon then return end
-
     local hrp = gH()
     local nearestRoot = nil
     local minDistance = math.huge
-
     for _, room in ipairs(dungeon:GetChildren()) do
         local exitPortal = room:FindFirstChild("ExitTeleporter")
         if exitPortal then
@@ -153,10 +131,7 @@ local function executeFlyToNearestExit()
             end
         end
     end
-
-    if nearestRoot then
-        flyToNearestExit(nearestRoot.Position + Vector3.new(0, 3, 0))
-    end
+    if nearestRoot then flyToNearestExit(nearestRoot.Position + Vector3.new(0, 3, 0)) end
 end
 
 local function getCurrentRoomNumber()
@@ -199,9 +174,7 @@ local Attack = {}
 local Sec = 0.1 
 
 Attack.Alive = function(model)
-    if not model then
-        return
-    end
+    if not model then return end
     local Humanoid = model:FindFirstChild("Humanoid")
     return Humanoid and Humanoid.Health > 0
 end
@@ -209,23 +182,17 @@ end
 task.spawn(function()
     while task.wait(Sec) do
         if _G.KillH then
-            local enemyFolder = workspace:FindFirstChild("Enemies")
+            local enemyFolder = workspace:FindFirstChild(EF)
             if enemyFolder then
                 for _, v in pairs(enemyFolder:GetChildren()) do
-                    if v.Name ~= "Blank Buddy" and Attack.Alive(v) then
+                    if v.Name ~= IE and Attack.Alive(v) then
                         pcall(function()
                             repeat
                                 task.wait(Sec)
-                                if sethiddenproperty then
-                                    pcall(sethiddenproperty, plr, "SimulationRadius", math.huge)
-                                end
+                                if sethiddenproperty then pcall(sethiddenproperty, plr, "SimulationRadius", math.huge) end
                                 v:BreakJoints()
-                                if v:FindFirstChild("Humanoid") then
-                                    v.Humanoid.Health = 0
-                                end
-                                if v:FindFirstChild("HumanoidRootPart") then
-                                    v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
-                                end
+                                if v:FindFirstChild("Humanoid") then v.Humanoid.Health = 0 end
+                                if v:FindFirstChild("HumanoidRootPart") then v.HumanoidRootPart.Size = Vector3.new(60, 60, 60) end
                             until not _G.KillH or not v.Parent or not Attack.Alive(v)
                         end)
                     end
@@ -235,7 +202,6 @@ task.spawn(function()
     end
 end)
 
--- UI TEXT SETTINGS (Initialized once outside)
 if _G.StatusItemLabel then _G.StatusItemLabel.Text = "Kaitun Ring" end
 
 task.spawn(function()
@@ -254,6 +220,8 @@ task.spawn(function()
     end
 
     while true do 
+        workspace.Gravity = 0
+
         if not isAlive() then
             updateUI("Character Died Resetting", lastMobStatus)
             sM() 
@@ -273,48 +241,119 @@ task.spawn(function()
         end
 
         if isBoss then 
-            updateUI("Clear room dungeon " .. rNum .. " Boss", lastMobStatus)
+            updateUI("Clear room dungeon " .. rNum .. " Boss", "Boss Battle")
             local f = workspace:FindFirstChild(EF)
             if f then 
-                local bossAlive = false
-                local targetBossName = ""
-                for _, e in pairs(f:GetChildren()) do 
-                    if e.Name == IE then continue end
-                    local u = e:FindFirstChild("Humanoid")
-                    if u and u.Health > 0 then 
-                        bossAlive = true
-                        targetBossName = e.Name
-                        break
-                    end 
-                end 
-                
-                if bossAlive then
-                    updateUI(lastFarmStatus, "Killing boss " .. targetBossName)
-                    _G.KillH = true
-                else
-                    updateUI("Boss is gone", "Safe mode on")
-                    _G.KillH = false
+                -- [Meyy Update] Logic moi cho man 15 theo y ann
+                local waitingForPhase2 = false
+                local phase2Timer = 0
+                local isPhaseTwo = false
+
+                while isAlive() do
+                    workspace.Gravity = 0 
+                    local checkStillBoss, _ = iB()
+                    if not checkStillBoss then break end
+
+                    local priorityTarget = nil
+                    local activeBoss = nil
+                    local deadBoss = nil
+
+                    for _, e in pairs(f:GetChildren()) do
+                        if e.Name == PROP_NAME and Attack.Alive(e) then
+                            priorityTarget = e
+                        elseif e.Name ~= IE and e.Name ~= PROP_NAME then
+                            if Attack.Alive(e) then activeBoss = e else deadBoss = e end
+                        end
+                    end
+
+                    local targetBoss = activeBoss or deadBoss
+
+                    if rNum == 15 and priorityTarget then
+                        _G.KillH = false
+                        updateUI("Room 15: Healing Props", "TP to Prop - Kill Aura OFF")
+                        local h = gH()
+                        local r = priorityTarget:FindFirstChild("HumanoidRootPart")
+                        if h and r then h.CFrame = r.CFrame * CFrame.new(0, 0, 3) end
+                        task.wait(0.1)
+
+                    elseif targetBoss then
+                        local bHRP = targetBoss:FindFirstChild("HumanoidRootPart")
+                        local bHum = targetBoss:FindFirstChild("Humanoid")
+                        local mHRP = gH()
+                        
+                        if bHRP and mHRP and bHum then
+                            local currentHP = bHum.Health
+                            local maxHP = bHum.MaxHealth
+                            if maxHP <= 0 then maxHP = 100 end
+                            local hpPercent = (currentHP / maxHP) * 100
+                            
+                            -- [Meyy Update] Simple Check: < 37% -> cho 4s -> isPhaseTwo = true
+                            if rNum == 15 and activeBoss and not isPhaseTwo then
+                                if not waitingForPhase2 and hpPercent < 37 then
+                                    waitingForPhase2 = true
+                                    phase2Timer = tick() + 4
+                                elseif waitingForPhase2 and tick() >= phase2Timer then
+                                    isPhaseTwo = true
+                                end
+                            end
+
+                            local targetPos
+                            if activeBoss then
+                                if rNum == 15 then
+                                    if isPhaseTwo and hpPercent <= 70 then
+                                        _G.KillH = true
+                                        targetPos = bHRP.Position + Vector3.new(0, 1000, 0)
+                                        updateUI("Boss Phase 2 - Low HP", "Safe Mode: 1000 Studs")
+                                    else
+                                        _G.KillH = false
+                                        targetPos = bHRP.Position + Vector3.new(0, 3, 0)
+                                        if waitingForPhase2 and not isPhaseTwo then
+                                            updateUI("Boss Phase 1", "Waiting Phase 2...")
+                                        else
+                                            updateUI(isPhaseTwo and "Boss Phase 2" or "Boss Battle", "Close Combat")
+                                        end
+                                    end
+                                else
+                                    -- Man 5, 10, 20
+                                    _G.KillH = true
+                                    targetPos = bHRP.Position + Vector3.new(0, 100, 0)
+                                    updateUI("Boss Room " .. rNum, "Standard Farm")
+                                end
+                            else
+                                _G.KillH = false
+                                if rNum == 15 then
+                                    targetPos = (isPhaseTwo and hpPercent <= 70) and bHRP.Position + Vector3.new(0, 1000, 0) or bHRP.Position + Vector3.new(0, 3, 0)
+                                else
+                                    targetPos = bHRP.Position + Vector3.new(0, 100, 0)
+                                end
+                                updateUI("Boss Dead", "Waiting for despawn")
+                            end
+
+                            local tween = TS:Create(mHRP, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)})
+                            tween:Play()
+                        end
+                        task.wait(0.1)
+                    else
+                        _G.KillH = false
+                        if fE() then break end
+                        task.wait(0.1)
+                    end
                 end
             end
             task.wait(0.4) 
-            
         else 
             _G.KillH = false
-            local f = workspace:FindFirstChild(EF)
+            local f = workspace:FindFirstChild(EF) 
             local h = gH()
-            
             if f and h then 
                 local i = {}
                 for _, e in pairs(f:GetChildren()) do 
                     if e.Name ~= IE then 
                         local r = e:FindFirstChild("HumanoidRootPart")
                         local u = e:FindFirstChild("Humanoid")
-                        if r and u and u.Health > 0 then 
-                            table.insert(i, e)
-                        end 
+                        if r and u and u.Health > 0 then table.insert(i, e) end 
                     end 
                 end;
-                
                 if #i > 0 then 
                     updateUI("Clear " .. rNum, lastMobStatus)
                     for _, e in ipairs(i) do 
@@ -322,42 +361,28 @@ task.spawn(function()
                         local r = e:FindFirstChild("HumanoidRootPart")
                         if r then h.CFrame = r.CFrame; task.wait(TD) end 
                     end;
-                    
                     local x = fE()
                     if x and isAlive() then 
                         local pP = x.Position + Vector3.new(0, 10, 0)
                         local pad = cP(pP)
                         local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
                         h.CFrame = sC; task.wait(0.1)
-                        
                         while isAlive() do 
-                            local checkBoss, currentRoomVar = iB()
+                            local checkBoss, _ = iB()
                             if checkBoss then break end;
                             local m = {}
-                            local lastEnemyName = ""
                             local enemiesAlive = 0
-                            
                             for _, e in pairs(f:GetChildren()) do 
                                 if e.Name ~= IE then 
                                     local r = e:FindFirstChild("HumanoidRootPart")
                                     local u = e:FindFirstChild("Humanoid")
                                     if r and u and u.Health > 0 then
                                         enemiesAlive = enemiesAlive + 1
-                                        lastEnemyName = e.Name
-                                        if (r.Position - h.Position).Magnitude > GR then 
-                                            table.insert(m, e)
-                                        end 
+                                        if (r.Position - h.Position).Magnitude > GR then table.insert(m, e) end 
                                     end 
                                 end 
                             end;
-                            
-                            if enemiesAlive == 0 then
-                                updateUI("Tween To Portal", "Clear")
-                                break
-                            else
-                                updateUI(lastFarmStatus, "Kill " .. lastEnemyName)
-                            end
-
+                            if enemiesAlive == 0 then updateUI("Tween To Portal", "Clear") break end
                             if #m == 0 then break end;
                             for _, e in ipairs(m) do 
                                 if not isAlive() then break end
@@ -367,9 +392,7 @@ task.spawn(function()
                             if isAlive() then h.CFrame = sC; task.wait(TD); task.wait(0.1) end
                         end 
                     end 
-                else
-                    updateUI("Tween To Portal", "Clear")
-                end
+                else updateUI("Tween To Portal", "Clear") end
             end;
             task.wait(1)
         end 
