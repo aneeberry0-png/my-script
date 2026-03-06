@@ -1,8 +1,9 @@
 --[[ 
     FULL SCRIPT MODIFIED BY meyy~ 
     - [Meyy Update] Target Rooms: 5, 10, 15, 20
-    - [Meyy Update] Simple Phase 2: HP < 37% -> Wait 4s -> isPhaseTwo = true
-    - [Meyy Update] Action: Safe Mode at 1000 Studs (Only Phase 2 & < 70% HP)
+    - [Meyy Update] Room 15: HP < 37% -> Wait 4s -> isPhaseTwo = true
+    - [Meyy Update] Room 20: Safe Mode & Kill Aura ON ONLY IF HP < 44%
+    - [Meyy Update] Action: Safe Mode at 1000 Studs for Room 15 & 20
     - [Meyy Update] UI: 100% English, no emojis
 ]]
 
@@ -244,7 +245,6 @@ task.spawn(function()
             updateUI("Clear room dungeon " .. rNum .. " Boss", "Boss Battle")
             local f = workspace:FindFirstChild(EF)
             if f then 
-                -- [Meyy Update] Logic moi cho man 15 theo y ann
                 local waitingForPhase2 = false
                 local phase2Timer = 0
                 local isPhaseTwo = false
@@ -287,7 +287,7 @@ task.spawn(function()
                             if maxHP <= 0 then maxHP = 100 end
                             local hpPercent = (currentHP / maxHP) * 100
                             
-                            -- [Meyy Update] Simple Check: < 37% -> cho 4s -> isPhaseTwo = true
+                            -- Logic man 15
                             if rNum == 15 and activeBoss and not isPhaseTwo then
                                 if not waitingForPhase2 and hpPercent < 37 then
                                     waitingForPhase2 = true
@@ -313,8 +313,19 @@ task.spawn(function()
                                             updateUI(isPhaseTwo and "Boss Phase 2" or "Boss Battle", "Close Combat")
                                         end
                                     end
+                                elseif rNum == 20 then
+                                    -- [Meyy Update] Logic rieng cho man 20
+                                    if hpPercent < 44 then
+                                        _G.KillH = true
+                                        targetPos = bHRP.Position + Vector3.new(0, 1000, 0)
+                                        updateUI("Boss Room 20 - Low HP", "Safe Mode: 1000 Studs")
+                                    else
+                                        _G.KillH = false
+                                        targetPos = bHRP.Position + Vector3.new(0, 3, 0)
+                                        updateUI("Boss Room 20", "Close Combat")
+                                    end
                                 else
-                                    -- Man 5, 10, 20
+                                    -- Man 5, 10
                                     _G.KillH = true
                                     targetPos = bHRP.Position + Vector3.new(0, 100, 0)
                                     updateUI("Boss Room " .. rNum, "Standard Farm")
@@ -323,6 +334,9 @@ task.spawn(function()
                                 _G.KillH = false
                                 if rNum == 15 then
                                     targetPos = (isPhaseTwo and hpPercent <= 70) and bHRP.Position + Vector3.new(0, 1000, 0) or bHRP.Position + Vector3.new(0, 3, 0)
+                                elseif rNum == 20 then
+                                    -- Du bam xac man 20
+                                    targetPos = (hpPercent < 44) and bHRP.Position + Vector3.new(0, 1000, 0) or bHRP.Position + Vector3.new(0, 3, 0)
                                 else
                                     targetPos = bHRP.Position + Vector3.new(0, 100, 0)
                                 end
