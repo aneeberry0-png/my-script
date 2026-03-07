@@ -15,63 +15,113 @@ if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") the
     repeat task.wait() until plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 end
 
+local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
+
+-- 1. TẠO SCREEN GUI
+local g = Instance.new("ScreenGui")
+g.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
+g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() g.Parent = CoreGui end)
+if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+getgenv().kc = g
+
+-- 2. MAIN FRAME (Chỉ giữ lại khung trắng mây bồng bềnh nhó ann)
+local m = Instance.new("Frame", g)
+m.Name = "Main"
+m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+m.BackgroundTransparency = 0.3
+m.Position = UDim2.new(0.5, 0, 0, -150)
+m.Size = UDim2.new(0, 320, 0, 100)
+m.AnchorPoint = Vector2.new(0.5, 0)
+
+local mainCorner = Instance.new("UICorner", m)
+mainCorner.CornerRadius = UDim.new(0, 10)
+
+-- [PHẦN SỬA]: Đã xóa toàn bộ phần tạo Aura Icon và Phụ kiện nhó (〃´∀｀)
+
+-- [VIỀN UI & GRADIENT]
+local u = Instance.new("UIStroke", m)
+u.Thickness = 2.5
+u.Color = Color3.new(1, 1, 1)
+local e = Instance.new("UIGradient", u)
+
+local bgGradient = Instance.new("UIGradient", m)
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+})
+
 -------------------------------------------------------------------------
--- UI SECTION -------------------------------------------------------------------------
-local StatusGui = Instance.new("ScreenGui")
-StatusGui.Name = "StatusOverlay"
-StatusGui.Parent = game:GetService("CoreGui")
-StatusGui.ResetOnSpawn = false
+-- 4. CÁC DÒNG TRẠNG THÁI (Giữ nguyên cho ann mò)
+-------------------------------------------------------------------------
+local statusGradients = {}
 
-local StatusMain = Instance.new("Frame")
-StatusMain.Name = "Main"
-StatusMain.Parent = StatusGui
-StatusMain.AnchorPoint = Vector2.new(0.5, 0.5)
-StatusMain.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-StatusMain.BackgroundTransparency = 0.5
-StatusMain.Position = UDim2.new(0.5, 0, 0.05, 0)
-StatusMain.Size = UDim2.new(0, 320, 0, 88)
-
-local StatusStroke = Instance.new("UIStroke")
-StatusStroke.Parent = StatusMain
-StatusStroke.Color = Color3.fromRGB(138, 43, 226)
-StatusStroke.Thickness = 2.5
-
-local function CreateLabel(name, pos, text)
-    local label = Instance.new("TextLabel")
+local function CreateStatusLabel(name, pos, text)
+    local label = Instance.new("TextLabel", m)
     label.Name = name
-    label.Parent = StatusMain
+    label.Size = UDim2.new(1, -20, 0, 20)
+    label.Position = UDim2.new(0.5, 0, 0, pos)
     label.AnchorPoint = Vector2.new(0.5, 0)
     label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0.5, 0, 0, pos)
-    label.Size = UDim2.new(0, 300, 0, 18)
     label.Font = Enum.Font.GothamBold
     label.Text = text
-    label.TextColor3 = Color3.fromRGB(0, 191, 255)
-    label.TextSize = 16
-    return label
+    label.TextSize = 15
+    label.TextColor3 = Color3.new(1, 1, 1)
+    
+    local txtStroke = Instance.new("UIStroke", label)
+    txtStroke.Thickness = 0.5
+    txtStroke.Color = Color3.fromRGB(150, 200, 220)
+    
+    local txtGradient = Instance.new("UIGradient", label)
+    table.insert(statusGradients, txtGradient)
+    return label, txtGradient
 end
 
-_G.StatusItemLabel = CreateLabel("StatusItem", 10, "Status Script: Running")
-_G.StatusFarmLabel = CreateLabel("StatusFarm", 35, "Status Farm: N/A")
-_G.StatusMobLabel = CreateLabel("StatusMob", 60, "Farm Mob: N/A")
+local infoLabel, infoGradient = CreateStatusLabel("TopInfo", 10, "Status Script: Running")
+_G.StatusItemLabel = CreateStatusLabel("StatusItem", 32, "Item: N/A")
+_G.StatusFarmLabel = CreateStatusLabel("StatusFarm", 54, "Farm: N/A")
+_G.StatusMobLabel = CreateStatusLabel("StatusMob", 76, "Mob: N/A")
 
--- MEYY~ UI OPTIMIZER: Only update if text actually changes (｡◕‿◕｡)
-local lastFarmText = ""
-local lastMobText = ""
+-------------------------------------------------------------------------
+-- [PHẦN SỬA]: THÊM CHỮ BY NAA Ở GÓC DƯỚI NHÓ (っ˘ω˘ς)
+-------------------------------------------------------------------------
+local creditLabel = Instance.new("TextLabel", m)
+creditLabel.Name = "CreditLabel"
+creditLabel.Size = UDim2.new(0, 50, 0, 15)
+creditLabel.Position = UDim2.new(1, -10, 1, -5)
+creditLabel.AnchorPoint = Vector2.new(1, 1)
+creditLabel.BackgroundTransparency = 1
+creditLabel.Font = Enum.Font.GothamBold
+creditLabel.Text = "by naa-banv"
+creditLabel.TextSize = 10
+creditLabel.TextColor3 = Color3.fromRGB(150, 200, 220)
+creditLabel.TextXAlignment = Enum.TextXAlignment.Right
 
-local function SetFarmStatus(text)
-    if text ~= lastFarmText then
-        lastFarmText = text
-        _G.StatusFarmLabel.Text = text
+-------------------------------------------------------------------------
+-- 6. VÒNG LẶP HIỆU ỨNG (Chỉ giữ lại hiệu ứng màu sắc cho ann nhó)
+-------------------------------------------------------------------------
+local r = 0
+RunService.RenderStepped:Connect(function()
+    local cfg = getgenv().Config or {}
+    r = (r + (cfg.RotationSpeed or 1.5)) % 360
+    e.Rotation = r
+    
+    local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+    local colorSeq = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
+    e.Color = colorSeq
+    
+    for _, grad in ipairs(statusGradients) do
+        grad.Rotation = r
+        grad.Color = colorSeq
     end
-end
+    
+    -- Hiệu ứng gợn sóng nền cho mượt mà nhó (≧◡≦)
+    bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+end)
 
-local function SetMobStatus(text)
-    if text ~= lastMobText then
-        lastMobText = text
-        _G.StatusMobLabel.Text = text
-    end
-end
+-- Tween xuất hiện nhẹ nhàng
+TweenService:Create(m, TweenInfo.new(1.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0, 20)}):Play()
 
 -------------------------------------------------------------------------
 -- LOGIC SECTION -------------------------------------------------------------------------
