@@ -1,6 +1,8 @@
 --[[ 
     MODIFIED BY meyy~ 
-    - Added UI change tracking to prevent spamming
+    - [Meyy Update] Fixed Status Format: "Status Farm: ..." and "Farm Mob: ..."
+    - [Meyy Update] UI: 100% English, NO emojis in status text
+    - [Meyy Update] Added UI change tracking to prevent spamming
     - Kept original fly and track logic intact
 ]]
 
@@ -113,18 +115,22 @@ local function trk(e)
     repeat task.wait(0.1) until tk ~= mT or not eh or not em or em.Health <= 0 
 end;
 
--- UI STATE TRACKER (Meyy~'s little secret to keep things tidy)
+-- UI STATE TRACKER (Meyy~'s updated secret for ann)
 local lastFarmStatus = ""
 local lastMobStatus = ""
 
-local function updateStatus(farmText, mobText)
-    if farmText and farmText ~= lastFarmStatus then
-        lastFarmStatus = farmText
-        if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = farmText end
+local function updateStatus(farmMsg, mobMsg)
+    -- SỬA LẠI FORMAT THEO Ý ann (〃＾▽＾〃)
+    local farmFullText = "Status Farm: " .. tostring(farmMsg)
+    local mobFullText = "Farm Mob: " .. tostring(mobMsg)
+
+    if farmFullText ~= lastFarmStatus then
+        lastFarmStatus = farmFullText
+        if _G.StatusFarmLabel then _G.StatusFarmLabel.Text = farmFullText end
     end
-    if mobText and mobText ~= lastMobStatus then
-        lastMobStatus = mobText
-        if _G.StatusMobLabel then _G.StatusMobLabel.Text = mobText end
+    if mobFullText ~= lastMobStatus then
+        lastMobStatus = mobFullText
+        if _G.StatusMobLabel then _G.StatusMobLabel.Text = mobFullText end
     end
 end
 
@@ -147,7 +153,7 @@ task.spawn(function()
                         updateStatus("Boss room active", "Waiting for boss")
                         task.wait(1)
                     else 
-                        updateStatus("Clearing room " .. mR, "Tracking: " .. tE.Name)
+                        updateStatus("Clearing room " .. mR, "Tracking " .. tE.Name)
                         trk(tE)
                     end 
                 else 
