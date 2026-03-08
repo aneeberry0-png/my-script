@@ -3,7 +3,7 @@
 -- ========================================================== --
 repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
     getgenv().Setting = {
-        ["Team"] = "Pirates",        
+        ["Team"] = "Marines",        
         ["Chat"] = {},
         ["Select Sea Farm"] = "None", -- "None", "Sea1", "Sea2", "Sea3"
         ["Skip Race V4"] = false,   
@@ -1897,3 +1897,10 @@ end)
 while task.wait(0.5) do
    LabelTarget()
 end
+
+game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+    if not hopserver and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+        game:GetService("TeleportService"):Teleport(game.PlaceId)
+    end
+end)
+
