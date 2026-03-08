@@ -1,3 +1,5 @@
+-- [[ MEYY~ UI OPTIMIZER FOR ann ]] --
+-- [PHẦN KHỞI TẠO HỆ THỐNG]
 local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
 
 -- 1. TẠO SCREEN GUI
@@ -8,7 +10,7 @@ pcall(function() g.Parent = CoreGui end)
 if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 getgenv().kc = g
 
--- 2. MAIN FRAME (Chỉ giữ lại khung trắng mây bồng bềnh nhó ann)
+-- 2. MAIN FRAME (Khung trắng mây bồng bềnh của ann nhó)
 local m = Instance.new("Frame", g)
 m.Name = "Main"
 m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -19,8 +21,6 @@ m.AnchorPoint = Vector2.new(0.5, 0)
 
 local mainCorner = Instance.new("UICorner", m)
 mainCorner.CornerRadius = UDim.new(0, 10)
-
--- [PHẦN SỬA]: Đã xóa toàn bộ phần tạo Aura Icon và Phụ kiện nhó (〃´∀｀)
 
 -- [VIỀN UI & GRADIENT]
 local u = Instance.new("UIStroke", m)
@@ -36,7 +36,7 @@ bgGradient.Color = ColorSequence.new({
 })
 
 -------------------------------------------------------------------------
--- 4. CÁC DÒNG TRẠNG THÁI (Giữ nguyên cho ann mò)
+-- 4. CÁC DÒNG TRẠNG THÁI (Đã đồng bộ biến _G cho ann nhó (っ˘ω˘ς))
 -------------------------------------------------------------------------
 local statusGradients = {}
 
@@ -61,13 +61,33 @@ local function CreateStatusLabel(name, pos, text)
     return label, txtGradient
 end
 
-local infoLabel, infoGradient = CreateStatusLabel("TopInfo", 10, "Status Script: Running")
-_G.StatusItemLabel = CreateStatusLabel("StatusItem", 32, "Item: N/A")
-_G.StatusFarmLabel = CreateStatusLabel("StatusFarm", 54, "Farm: N/A")
-_G.StatusMobLabel = CreateStatusLabel("StatusMob", 76, "Mob: N/A")
+-- Sửa lại các nhãn để khớp với logic UI cũ của ann
+_G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 10, "ʚ₊˚meყყ ♡ Hub˚₊ɞ")
+_G.StatusFarmLabel, _G.FarmGradient = CreateStatusLabel("StatusFarm", 35, "Status Farm: N/A")
+_G.StatusMobLabel, _G.MobGradient = CreateStatusLabel("StatusMob", 60, "Farm Mob: N/A")
 
 -------------------------------------------------------------------------
--- [PHẦN SỬA]: THÊM CHỮ BY NAA Ở GÓC DƯỚI NHÓ (っ˘ω˘ς)
+-- [HÀM CẬP NHẬT TỐI ƯU]: Chỉ update khi text thay đổi (〃´∀｀)
+-------------------------------------------------------------------------
+local lastFarmText = ""
+local lastMobText = ""
+
+function _G.SetFarmStatus(text)
+    if text ~= lastFarmText then
+        lastFarmText = text
+        _G.StatusFarmLabel.Text = text
+    end
+end
+
+function _G.SetMobStatus(text)
+    if text ~= lastMobText then
+        lastMobText = text
+        _G.StatusMobLabel.Text = text
+    end
+end
+
+-------------------------------------------------------------------------
+-- [PHẦN SỬA]: THÊM CHỮ BY NAA Ở GÓC DƯỚI (đáng iu xỉu ｡ﾟ( ﾟ^∀^ﾟ)ﾟ｡)
 -------------------------------------------------------------------------
 local creditLabel = Instance.new("TextLabel", m)
 creditLabel.Name = "CreditLabel"
@@ -82,7 +102,7 @@ creditLabel.TextColor3 = Color3.fromRGB(150, 200, 220)
 creditLabel.TextXAlignment = Enum.TextXAlignment.Right
 
 -------------------------------------------------------------------------
--- 6. VÒNG LẶP HIỆU ỨNG (Chỉ giữ lại hiệu ứng màu sắc cho ann nhó)
+-- 6. VÒNG LẶP HIỆU ỨNG (Mượt mà bồng bềnh nhó)
 -------------------------------------------------------------------------
 local r = 0
 RunService.RenderStepped:Connect(function()
@@ -91,7 +111,11 @@ RunService.RenderStepped:Connect(function()
     e.Rotation = r
     
     local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
-    local colorSeq = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
+    local colorSeq = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, c1), 
+        ColorSequenceKeypoint.new(0.5, c2), 
+        ColorSequenceKeypoint.new(1, c1)
+    })
     e.Color = colorSeq
     
     for _, grad in ipairs(statusGradients) do
@@ -103,6 +127,5 @@ RunService.RenderStepped:Connect(function()
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
 end)
 
--- Tween xuất hiện nhẹ nhàng
+-- Tween xuất hiện nhẹ nhàng từ trên xuống
 TweenService:Create(m, TweenInfo.new(1.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0, 20)}):Play()
--------------------------------------------------------------------------
