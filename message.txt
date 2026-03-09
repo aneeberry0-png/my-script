@@ -1,0 +1,864 @@
+local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+
+local UI_Elements = {
+    AnimatedGradients = {},
+    AnimatedStrokes = {},
+    RowStrokes = {},
+    RowStrokeGradients = {},
+    DivGradients = {},
+    TabGradients = {},
+    Switches = {}
+}
+
+local CurrentTheme = "Blue"
+
+local Themes = {
+    ["Moonlight"] = {
+        MainStroke = Color3.fromRGB(180, 180, 180), 
+        Wave = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 40)), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 240)), 
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 40))
+        }),
+        TitleStroke = Color3.fromRGB(150, 150, 150),
+        TextGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)), 
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+        }),
+        TabGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+        }),
+        DivGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 200, 200)),
+            ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
+        }),
+        RowStroke = Color3.fromRGB(100, 100, 100),
+        RowStrokeGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+        }),
+        ToggleActive = Color3.fromRGB(200, 200, 200),
+        LoopSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)), 
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+        })
+    },
+    ["Sakura"] = {
+        MainStroke = Color3.fromRGB(255, 235, 240), 
+        Wave = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(230, 245, 255)), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)), 
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(230, 245, 255))
+        }),
+        TitleStroke = Color3.fromRGB(255, 235, 240),
+        TextGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 210, 255)), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)), 
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 235, 240)) 
+        }),
+        TabGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 210, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 235, 240))
+        }),
+        DivGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 250, 250)),
+            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+        }),
+        RowStroke = Color3.new(1, 1, 1),
+        RowStrokeGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 210, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 235, 240))
+        }),
+        ToggleActive = Color3.fromRGB(255, 235, 240),
+        LoopSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 240, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 240, 245))
+        })
+    },
+    ["Blue"] = {
+        MainStroke = Color3.new(1, 1, 1),
+        Wave = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 235, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 235, 255))
+        }),
+        TitleStroke = Color3.fromRGB(130, 190, 250),
+        TextGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 180, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 240, 255))
+        }),
+        TabGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 180, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 240, 255))
+        }),
+        DivGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 220, 255)),
+            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+        }),
+        RowStroke = Color3.new(1, 1, 1),
+        RowStrokeGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 180, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 240, 255))
+        }),
+        ToggleActive = Color3.fromRGB(100, 180, 255),
+        LoopSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 230, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 230, 255))
+        })
+    }
+}
+
+if getgenv().MainUI_Meyy then
+    pcall(function() getgenv().MainUI_Meyy:Destroy() end)
+    getgenv().MainUI_Meyy = nil
+end
+
+local g = Instance.new("ScreenGui")
+g.Name = "Meyy_Hub_BF_Premium_" .. math.random(100, 999)
+g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+g.ResetOnSpawn = false 
+pcall(function() g.Parent = CoreGui end)
+if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+getgenv().MainUI_Meyy = g
+
+local m = Instance.new("Frame", g)
+m.Name = "MainFrame"
+m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+m.BackgroundTransparency = 0.5
+m.Size = UDim2.new(0, 700, 0, 500)
+m.Position = UDim2.new(0.5, 0, 0.5, 0)
+m.AnchorPoint = Vector2.new(0.5, 0.5)
+m.ClipsDescendants = true
+
+local mainCorner = Instance.new("UICorner", m)
+mainCorner.CornerRadius = UDim.new(0, 15)
+
+local isMini = false
+
+local ToggleIcon = Instance.new("ImageButton", g)
+ToggleIcon.Name = "ToggleIcon"
+ToggleIcon.Size = UDim2.new(0, 45, 0, 45)
+ToggleIcon.Position = UDim2.new(0, 20, 1, -65)
+ToggleIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ToggleIcon.Image = "rbxassetid://6031090990" 
+ToggleIcon.BackgroundTransparency = 0.5
+Instance.new("UICorner", ToggleIcon).CornerRadius = UDim.new(1, 0)
+
+ToggleIcon.MouseButton1Click:Connect(function()
+    if not m then return end
+    if m.Size.X.Offset > 0 then
+        TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+        task.wait(0.3)
+        m.Visible = false
+    else
+        m.Visible = true
+        local targetSize = isMini and UDim2.new(0, 700, 0, 45) or UDim2.new(0, 700, 0, 500)
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+    end
+end)
+
+local u = Instance.new("UIStroke", m)
+u.Thickness = 4.5
+u.Color = Themes[CurrentTheme].MainStroke
+table.insert(UI_Elements.AnimatedStrokes, {Obj = u, Type = "MainStroke"})
+local e = Instance.new("UIGradient", u)
+
+local waveBg = Instance.new("Frame", m)
+waveBg.Name = "WaveBackground"
+waveBg.Size = UDim2.new(1, 0, 1, 0)
+waveBg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+waveBg.BackgroundTransparency = 0.7 
+waveBg.ZIndex = 0
+Instance.new("UICorner", waveBg).CornerRadius = UDim.new(0, 15)
+
+local waveGrad = Instance.new("UIGradient", waveBg)
+waveGrad.Color = Themes[CurrentTheme].Wave
+
+local titleBar = Instance.new("Frame", m)
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 55) 
+titleBar.BackgroundTransparency = 1
+titleBar.ZIndex = 2
+
+local hubTitle = Instance.new("TextLabel", titleBar)
+hubTitle.Size = UDim2.new(0, 300, 1, 0)
+hubTitle.Position = UDim2.new(0, 20, 0, 0)
+hubTitle.BackgroundTransparency = 1
+hubTitle.Font = Enum.Font.GothamMedium
+hubTitle.Text = "ʚ₊˚ meყყ Hub - BF ˚₊ɞ [Premium] By Banv-naa" 
+hubTitle.TextColor3 = Color3.new(1, 1, 1)
+hubTitle.TextSize = 15
+hubTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local hubTitleStroke = Instance.new("UIStroke", hubTitle)
+hubTitleStroke.Thickness = 1.2
+hubTitleStroke.Color = Themes[CurrentTheme].TitleStroke 
+hubTitleStroke.Transparency = 0.2
+table.insert(UI_Elements.AnimatedStrokes, {Obj = hubTitleStroke, Type = "TitleStroke"})
+
+local hubTitleGrad = Instance.new("UIGradient", hubTitle)
+hubTitleGrad.Color = Themes[CurrentTheme].TextGrad
+table.insert(UI_Elements.AnimatedGradients, hubTitleGrad)
+
+local function CreateWinBtn(text, pos)
+    local btn = Instance.new("TextButton", titleBar)
+    btn.Size = UDim2.new(0, 30, 0, 30)
+    btn.Position = UDim2.new(1, pos, 0.5, 0) 
+    btn.AnchorPoint = Vector2.new(0, 0.5)
+    btn.BackgroundTransparency = 1
+    btn.Text = text
+    btn.Font = Enum.Font.GothamMedium
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.TextSize = 16 
+    
+    local btnStroke = Instance.new("UIStroke", btn)
+    btnStroke.Thickness = 1
+    btnStroke.Color = Themes[CurrentTheme].TitleStroke 
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = btnStroke, Type = "TitleStroke"})
+    
+    local btnGrad = Instance.new("UIGradient", btn)
+    btnGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, btnGrad)
+    return btn
+end
+
+local minBtn = CreateWinBtn("--", -105)
+local maxBtn = CreateWinBtn("▢", -70)
+local closeBtn = CreateWinBtn("X", -35)
+
+minBtn.MouseButton1Click:Connect(function()
+    if not isMini then
+        isMini = true
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 700, 0, 45)}):Play()
+        if m:FindFirstChild("Sidebar") then m.Sidebar.Visible = false end
+        if m:FindFirstChild("LeftDivider") then m.LeftDivider.Visible = false end
+        if m:FindFirstChild("TopDivider") then m.TopDivider.Visible = false end
+        for _, p in pairs(m:GetChildren()) do
+            if p:IsA("ScrollingFrame") and p.Name:match("Page$") then
+                p.Visible = false
+            end
+        end
+    end
+end)
+
+maxBtn.MouseButton1Click:Connect(function()
+    if isMini then
+        isMini = false
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 700, 0, 500)}):Play()
+        if m:FindFirstChild("Sidebar") then m.Sidebar.Visible = true end
+        if m:FindFirstChild("LeftDivider") then m.LeftDivider.Visible = true end
+        if m:FindFirstChild("TopDivider") then m.TopDivider.Visible = true end
+        if m:FindFirstChild("Sidebar") then
+            for _, btn in pairs(m.Sidebar:GetChildren()) do
+                if btn:IsA("TextButton") and btn:FindFirstChild("Indicator") and btn.Indicator.Visible then
+                    local pageName = btn.Text:gsub("%s+", "") .. "Page"
+                    if m:FindFirstChild(pageName) then
+                        m[pageName].Visible = true
+                    end
+                end
+            end
+        end
+    end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    if m.Size.X.Offset > 0 then
+        TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+        task.wait(0.3)
+        m.Visible = false
+    end
+end)
+
+local dragging, dragInput, dragStart, startPos
+titleBar.InputBegan:Connect(function(input)
+    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = m.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        m.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+local TopDivider = Instance.new("Frame", m)
+TopDivider.Name = "TopDivider"
+TopDivider.Size = UDim2.new(1, -40, 0, 1) 
+TopDivider.Position = UDim2.new(0, 20, 0, 55)
+TopDivider.BackgroundColor3 = Color3.new(1, 1, 1) 
+TopDivider.BackgroundTransparency = 0
+TopDivider.BorderSizePixel = 0
+TopDivider.ZIndex = 3
+
+local topDivGrad = Instance.new("UIGradient", TopDivider)
+topDivGrad.Color = Themes[CurrentTheme].DivGrad
+topDivGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1), 
+    NumberSequenceKeypoint.new(0.5, 0), 
+    NumberSequenceKeypoint.new(1, 1) 
+})
+table.insert(UI_Elements.DivGradients, topDivGrad)
+
+local LeftDivider = Instance.new("Frame", m)
+LeftDivider.Name = "LeftDivider"
+LeftDivider.Size = UDim2.new(0, 1, 1, -80) 
+LeftDivider.Position = UDim2.new(0, 190, 0, 65) 
+LeftDivider.BackgroundColor3 = Color3.new(1, 1, 1) 
+LeftDivider.BackgroundTransparency = 0
+LeftDivider.BorderSizePixel = 0
+LeftDivider.ZIndex = 3
+
+local leftDivGrad = Instance.new("UIGradient", LeftDivider)
+leftDivGrad.Rotation = 90 
+leftDivGrad.Color = Themes[CurrentTheme].DivGrad
+leftDivGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+table.insert(UI_Elements.DivGradients, leftDivGrad)
+
+local Sidebar = Instance.new("ScrollingFrame", m)
+Sidebar.Name = "Sidebar"
+Sidebar.Size = UDim2.new(0, 180, 1, -65) 
+Sidebar.Position = UDim2.new(0, 5, 0, 60)
+Sidebar.BackgroundTransparency = 1
+Sidebar.BorderSizePixel = 0
+Sidebar.ScrollBarThickness = 0 
+Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0) 
+Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Sidebar.ZIndex = 2
+
+local sideLayout = Instance.new("UIListLayout", Sidebar)
+sideLayout.Padding = UDim.new(0, 5)
+sideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local TabsList = {}
+local PagesList = {}
+
+local function CreateTab(name, isFirstPage)
+    local btn = Instance.new("TextButton", Sidebar)
+    btn.Size = UDim2.new(1, -20, 0, 35)
+    btn.BackgroundTransparency = 1 
+    btn.Font = Enum.Font.GothamMedium
+    btn.Text = "      " .. name 
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.TextSize = 15
+    btn.TextXAlignment = Enum.TextXAlignment.Left 
+    
+    local indicator = Instance.new("Frame", btn)
+    indicator.Name = "Indicator"
+    indicator.Size = UDim2.new(0, 4, 0, 18)
+    indicator.Position = UDim2.new(0, 8, 0.5, 0)
+    indicator.AnchorPoint = Vector2.new(0, 0.5)
+    indicator.BackgroundColor3 = Color3.new(1, 1, 1)
+    indicator.BorderSizePixel = 0
+    indicator.Visible = isFirstPage
+    Instance.new("UICorner", indicator).CornerRadius = UDim.new(1, 0)
+    
+    local indiGrad = Instance.new("UIGradient", indicator)
+    indiGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, indiGrad) 
+    
+    local btnStroke = Instance.new("UIStroke", btn)
+    btnStroke.Thickness = 2.2
+    btnStroke.Color = Themes[CurrentTheme].TitleStroke 
+    btnStroke.Transparency = 1.5
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = btnStroke, Type = "TitleStroke"})
+    
+    local tabGrad = Instance.new("UIGradient", btn)
+    tabGrad.Color = Themes[CurrentTheme].TabGrad
+    table.insert(UI_Elements.TabGradients, tabGrad)
+    table.insert(UI_Elements.AnimatedGradients, tabGrad)
+
+    table.insert(TabsList, btn)
+
+    local page = Instance.new("ScrollingFrame", m)
+    page.Name = name .. "Page"
+    page.Size = UDim2.new(1, -235, 1, -85)
+    page.Position = UDim2.new(0, 215, 0, 70) 
+    page.BackgroundTransparency = 1
+    page.ScrollBarThickness = 0 
+    page.ZIndex = 2
+    page.Visible = isFirstPage 
+    page.CanvasSize = UDim2.new(0, 0, 0, 0)
+    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+    local pagePadding = Instance.new("UIPadding", page)
+    pagePadding.PaddingLeft = UDim.new(0, 10)
+    pagePadding.PaddingRight = UDim.new(0, 20) 
+    pagePadding.PaddingTop = UDim.new(0, 5)
+
+    local contentLayout = Instance.new("UIListLayout", page)
+    contentLayout.Padding = UDim.new(0, 8)
+
+    table.insert(PagesList, page)
+
+    btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(PagesList) do p.Visible = false end
+        for _, t in pairs(TabsList) do 
+            if t:FindFirstChild("Indicator") then
+                t.Indicator.Visible = false
+            end
+        end
+        page.Visible = true
+        indicator.Visible = true
+    end)
+
+    return page
+end
+
+local function CreatePageTitle(parentPage, text)
+    local titleWrapper = Instance.new("Frame", parentPage)
+    titleWrapper.Size = UDim2.new(1, 0, 0, 45) 
+    titleWrapper.BackgroundTransparency = 1
+
+    local title = Instance.new("TextLabel", titleWrapper)
+    title.Size = UDim2.new(1, 0, 1, 0)
+    title.Position = UDim2.new(0, 10, 0, 0) 
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.Text = text
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextSize = 26
+    title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local titleStroke = Instance.new("UIStroke", title)
+    titleStroke.Thickness = 1.5
+    titleStroke.Color = Themes[CurrentTheme].TitleStroke 
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = titleStroke, Type = "TitleStroke"})
+
+    local txtGrad = Instance.new("UIGradient", title)
+    txtGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, txtGrad)
+end
+
+local function CreatePageSubTitle(parentPage, text)
+    local titleWrapper = Instance.new("Frame", parentPage)
+    titleWrapper.Size = UDim2.new(1, 0, 0, 35)
+    titleWrapper.BackgroundTransparency = 1
+
+    local title = Instance.new("TextLabel", titleWrapper)
+    title.Size = UDim2.new(1, 0, 1, 0)
+    title.Position = UDim2.new(0, 10, 0, 0) 
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.Text = text
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextSize = 20
+    title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local titleStroke = Instance.new("UIStroke", title)
+    titleStroke.Thickness = 1.2
+    titleStroke.Color = Themes[CurrentTheme].TitleStroke 
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = titleStroke, Type = "TitleStroke"})
+
+    local txtGrad = Instance.new("UIGradient", title)
+    txtGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, txtGrad)
+end
+
+local function CreateDropdown(parentPage, text, default, optionsList, callback)
+    local container = Instance.new("Frame", parentPage)
+    container.Size = UDim2.new(1, -4, 0, 46) 
+    container.Position = UDim2.new(0, 2, 0, 0)
+    container.BackgroundTransparency = 1
+    container.ClipsDescendants = true 
+
+    local row = Instance.new("Frame", container)
+    row.Size = UDim2.new(1, 0, 0, 42)
+    row.Position = UDim2.new(0, 0, 0, 2)
+    row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    row.BackgroundTransparency = 0.8 
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+    
+    local rowStroke = Instance.new("UIStroke", row)
+    rowStroke.Color = Themes[CurrentTheme].RowStroke
+    rowStroke.Thickness = 1.2
+    table.insert(UI_Elements.RowStrokes, rowStroke)
+
+    local rowGrad = Instance.new("UIGradient", rowStroke)
+    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad
+    table.insert(UI_Elements.RowStrokeGradients, rowGrad) 
+    table.insert(UI_Elements.AnimatedGradients, rowGrad)
+
+    local label = Instance.new("TextLabel", row)
+    label.Size = UDim2.new(0.5, -10, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0) 
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamMedium
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1) 
+    label.TextSize = 14.5
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local labelStroke = Instance.new("UIStroke", label)
+    labelStroke.Thickness = 0.5
+    labelStroke.Color = Themes[CurrentTheme].TitleStroke 
+    labelStroke.Transparency = 0.2
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = labelStroke, Type = "TitleStroke"})
+
+    local labelGrad = Instance.new("UIGradient", label)
+    labelGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, labelGrad)
+
+    local dropBtn = Instance.new("TextButton", row)
+    dropBtn.Size = UDim2.new(0, 130, 0, 30)
+    dropBtn.Position = UDim2.new(1, -145, 0.5, 0) 
+    dropBtn.AnchorPoint = Vector2.new(0, 0.5)
+    dropBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    dropBtn.BackgroundTransparency = 0.8
+    dropBtn.Text = default
+    dropBtn.Font = Enum.Font.GothamMedium
+    dropBtn.TextColor3 = Color3.new(1, 1, 1) 
+    dropBtn.TextSize = 12.5
+    Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0, 6)
+    
+    local dropBtnStroke = Instance.new("UIStroke", dropBtn)
+    dropBtnStroke.Thickness = 1
+    dropBtnStroke.Color = Themes[CurrentTheme].TitleStroke 
+    dropBtnStroke.Transparency = 0.2
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = dropBtnStroke, Type = "TitleStroke"})
+
+    local dropBtnGrad = Instance.new("UIGradient", dropBtn)
+    dropBtnGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, dropBtnGrad)
+
+    local arrow = Instance.new("TextLabel", dropBtn)
+    arrow.Size = UDim2.new(0, 20, 1, 0)
+    arrow.Position = UDim2.new(1, -25, 0, 0)
+    arrow.BackgroundTransparency = 1
+    arrow.Text = "▼"
+    arrow.TextColor3 = Color3.new(1, 1, 1) 
+    arrow.TextSize = 10
+    local arrowGrad = Instance.new("UIGradient", arrow)
+    arrowGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, arrowGrad)
+
+    local dropList = Instance.new("ScrollingFrame", container)
+    dropList.Size = UDim2.new(1, 0, 1, -48)
+    dropList.Position = UDim2.new(0, 0, 0, 48)
+    dropList.BackgroundTransparency = 0.8
+    dropList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    dropList.BorderSizePixel = 0
+    dropList.ScrollBarThickness = 2
+    Instance.new("UICorner", dropList).CornerRadius = UDim.new(0, 8)
+    
+    local listLayout = Instance.new("UIListLayout", dropList)
+    listLayout.Padding = UDim.new(0, 5)
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    
+    local dropListStroke = Instance.new("UIStroke", dropList)
+    dropListStroke.Color = Themes[CurrentTheme].TitleStroke
+    dropListStroke.Thickness = 1.2
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = dropListStroke, Type = "TitleStroke"})
+
+    local isDropped = false
+
+    optionsList = optionsList or {"Sample Mode"}
+    
+    for _, opt in pairs(optionsList) do
+        local dummyBtn = Instance.new("TextButton", dropList)
+        dummyBtn.Size = UDim2.new(1, -10, 0, 30)
+        dummyBtn.BackgroundTransparency = 1
+        dummyBtn.Text = opt
+        dummyBtn.Font = Enum.Font.GothamMedium
+        dummyBtn.TextColor3 = Color3.new(1, 1, 1)
+        dummyBtn.TextSize = 12
+        
+        dummyBtn.MouseButton1Click:Connect(function()
+            dropBtn.Text = opt
+            isDropped = false
+            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, 46)}):Play()
+            TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
+            if callback then callback(opt) end
+        end)
+    end
+    
+    dropBtn.MouseButton1Click:Connect(function()
+        isDropped = not isDropped
+        local targetHeight = isDropped and 160 or 46
+        TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)}):Play()
+        TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
+    end)
+end
+
+local function CreateSwitch(parentPage, text, default, callback)
+    local row = Instance.new("Frame", parentPage)
+    row.Size = UDim2.new(1, -4, 0, 42)
+    row.Position = UDim2.new(0, 2, 0, 0)
+    row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    row.BackgroundTransparency = 0.8
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+    
+    local rowStroke = Instance.new("UIStroke", row)
+    rowStroke.Color = Themes[CurrentTheme].RowStroke
+    rowStroke.Thickness = 1.2
+    table.insert(UI_Elements.RowStrokes, rowStroke)
+
+    local rowGrad = Instance.new("UIGradient", rowStroke)
+    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad
+    table.insert(UI_Elements.RowStrokeGradients, rowGrad)
+    table.insert(UI_Elements.AnimatedGradients, rowGrad)
+
+    local label = Instance.new("TextLabel", row)
+    label.Size = UDim2.new(0.7, -10, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0) 
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamMedium
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1) 
+    label.TextSize = 14.5
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local labelStroke = Instance.new("UIStroke", label)
+    labelStroke.Thickness = 0.5
+    labelStroke.Color = Themes[CurrentTheme].TitleStroke 
+    labelStroke.Transparency = 0.2
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = labelStroke, Type = "TitleStroke"})
+
+    local labelGrad = Instance.new("UIGradient", label)
+    labelGrad.Color = Themes[CurrentTheme].TextGrad
+    table.insert(UI_Elements.AnimatedGradients, labelGrad)
+
+    local toggleFrame = Instance.new("TextButton", row)
+    toggleFrame.Size = UDim2.new(0, 40, 0, 20)
+    toggleFrame.Position = UDim2.new(1, -55, 0.5, 0) 
+    toggleFrame.AnchorPoint = Vector2.new(0, 0.5)
+    toggleFrame.BackgroundColor3 = default and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)
+    toggleFrame.Text = ""
+    Instance.new("UICorner", toggleFrame).CornerRadius = UDim.new(1, 0)
+
+    local ball = Instance.new("Frame", toggleFrame)
+    ball.Size = UDim2.new(0, 16, 0, 16)
+    ball.Position = default and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
+    ball.AnchorPoint = Vector2.new(0, 0.5)
+    ball.BackgroundColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
+
+    local active = default
+    local switchData = {Frame = toggleFrame, Active = active}
+    table.insert(UI_Elements.Switches, switchData)
+
+    toggleFrame.MouseButton1Click:Connect(function()
+        active = not active
+        switchData.Active = active
+        TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)}):Play()
+        TweenService:Create(ball, TweenInfo.new(0.2), {Position = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)}):Play()
+        if callback then callback(active) end
+    end)
+end
+
+local function ApplyTheme(name)
+    local t = Themes[name]
+    if not t then return end
+    CurrentTheme = name
+    
+    for _, item in pairs(UI_Elements.AnimatedStrokes) do
+        if item.Obj and item.Obj.Parent then 
+            TweenService:Create(item.Obj, TweenInfo.new(0.3), {Color = t[item.Type]}):Play() 
+        end
+    end
+    for _, s in pairs(UI_Elements.RowStrokes) do
+        if s and s.Parent then TweenService:Create(s, TweenInfo.new(0.3), {Color = t.RowStroke}):Play() end
+    end
+    for _, g in pairs(UI_Elements.AnimatedGradients) do
+        if g and g.Parent then g.Color = t.TextGrad end
+    end
+    for _, g in pairs(UI_Elements.RowStrokeGradients) do
+        if g and g.Parent then g.Color = t.RowStrokeGrad end
+    end
+    for _, g in pairs(UI_Elements.TabGradients) do
+        if g and g.Parent then g.Color = t.TabGrad end
+    end
+    for _, d in pairs(UI_Elements.DivGradients) do
+        if d and d.Parent then d.Color = t.DivGrad end
+    end
+    if waveGrad then waveGrad.Color = t.Wave end
+    for _, sw in pairs(UI_Elements.Switches) do
+        if sw.Active then TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play() end
+    end
+end
+
+local MainPage = CreateTab("Main", true)
+local SettingsPage = CreateTab("Settings", false)
+CreateTab("Shop", false)
+CreateTab("Stats", false)
+CreateTab("Visuals", false)
+CreateTab("Misc", false)
+
+CreatePageTitle(MainPage, "Main")
+CreateDropdown(MainPage, "Select Method Farm", "Farm Katakuri", {"Farm Katakuri", "Farm Bones", "Farm Mastery"})
+CreateSwitch(MainPage, "Start Farm", false) 
+CreateSwitch(MainPage, "Accept Quests", false) 
+CreateSwitch(MainPage, "Ignore Boss", false)
+
+CreatePageSubTitle(MainPage, "Farm Mastery")
+CreateDropdown(MainPage, "Choose Island", "Cake", {"Cake", "Castle", "Hydra"})
+CreateSwitch(MainPage, "Auto Mastery Fruits", false)
+CreateSwitch(MainPage, "Auto Mastery Gun", false)
+
+CreatePageTitle(SettingsPage, "Settings")
+CreatePageSubTitle(SettingsPage, "UI Customization")
+CreateDropdown(SettingsPage, "Select Theme", "Moonlight", {"Sakura","Moonlight","Blue"}, function(selected)
+    ApplyTheme(selected)
+end)
+
+CreatePageSubTitle(SettingsPage, "Game Config")
+CreateSwitch(SettingsPage, "Auto Rejoin", false)
+CreateSwitch(SettingsPage, "White Screen", false)
+
+local r = 0
+RunService.RenderStepped:Connect(function()
+    r = (r + 1.5) % 360
+    e.Rotation = r
+    e.Color = Themes[CurrentTheme].LoopSeq
+    
+    if waveGrad then
+        waveGrad.Rotation = math.sin(tick() * 0.5) * 10 
+        waveGrad.Offset = Vector2.new(math.sin(tick() * 1.2) * 0.5, 0)
+    end
+    
+    local animatedOffset = Vector2.new(math.sin(tick() * 2) * 0.4, 0)
+    for _, grad in pairs(UI_Elements.AnimatedGradients) do
+        if grad and grad.Parent then grad.Offset = animatedOffset end
+    end
+    for _, grad in pairs(UI_Elements.RowStrokeGradients) do
+        if grad and grad.Parent then grad.Offset = animatedOffset end
+    end
+    for _, grad in pairs(UI_Elements.TabGradients) do
+        if grad and grad.Parent then grad.Offset = animatedOffset end
+    end
+end)
+
+m.Size = UDim2.new(0, 0, 0, 0)
+TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 700, 0, 500)}):Play()
+local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
+
+-- 1. TẠO SCREEN GUI
+local g = Instance.new("ScreenGui")
+g.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
+g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() g.Parent = CoreGui end)
+if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+getgenv().kc = g
+
+-- 2. MAIN FRAME (Khung đã được thu nhỏ lại 1 chút cho ann nhó ╰(*´︶`*)╯)
+local m = Instance.new("Frame", g)
+m.Name = "Main"
+m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+m.BackgroundTransparency = 0.3
+-- Bắt đầu từ ngoài bên phải màn hình
+m.Position = UDim2.new(1, 50, 1, -120) 
+-- [PHẦN SỬA]: Thu nhỏ Size từ 320x100 xuống 260x80 nhó (〃￣ω￣〃)ゞ
+m.Size = UDim2.new(0, 260, 0, 80)
+m.AnchorPoint = Vector2.new(1, 1)
+
+local mainCorner = Instance.new("UICorner", m)
+mainCorner.CornerRadius = UDim.new(0, 10)
+
+-- [VIỀN UI & GRADIENT]
+local u = Instance.new("UIStroke", m)
+u.Thickness = 2.5
+u.Color = Color3.new(1, 1, 1)
+local e = Instance.new("UIGradient", u)
+
+local bgGradient = Instance.new("UIGradient", m)
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+})
+
+-------------------------------------------------------------------------
+-- 3. NỘI DUNG THÔNG BÁO (MEYY HUB)
+-------------------------------------------------------------------------
+local statusGradients = {}
+
+local function CreateStatusLabel(name, pos, text, size)
+    local label = Instance.new("TextLabel", m)
+    label.Name = name
+    -- [PHẦN SỬA]: Chỉnh lại Size nhãn cho khớp khung nhỏ
+    label.Size = UDim2.new(1, -20, 0, 25)
+    label.Position = UDim2.new(0.5, 0, 0, pos)
+    label.AnchorPoint = Vector2.new(0.5, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextSize = size or 12
+    label.TextColor3 = Color3.new(1, 1, 1)
+    
+    local txtStroke = Instance.new("UIStroke", label)
+    txtStroke.Thickness = 1.2
+    txtStroke.Color = Color3.fromRGB(150, 200, 220)
+    
+    local txtGradient = Instance.new("UIGradient", label)
+    table.insert(statusGradients, txtGradient)
+    return label
+end
+
+-- [PHẦN SỬA]: Căn lại vị trí chữ cho đẹp nè waa~ (≧◡≦)
+local titleLabel = CreateStatusLabel("Title", 12, "ʚ₊˚meყყ♡hub˚₊ɞ", 20)
+local subLabel = CreateStatusLabel("Subtitle", 40, "script make by naa-banv", 12)
+
+-------------------------------------------------------------------------
+-- 4. VÒNG LẶP HIỆU ỨNG (Giữ nguyên xoay chữ nhó)
+-------------------------------------------------------------------------
+local r = 0
+local renderSteppedConn
+renderSteppedConn = RunService.RenderStepped:Connect(function()
+    r = (r + 1.5) % 360
+    e.Rotation = r
+    
+    local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+    local colorSeq = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
+    e.Color = colorSeq
+    
+    for _, grad in ipairs(statusGradients) do
+        grad.Rotation = r
+        grad.Color = colorSeq
+    end
+    
+    bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+end)
+
+-------------------------------------------------------------------------
+-- 5. LOGIC TRƯỢT NGANG (3 GIÂY RÙI BIẾN MẤT MÒ)
+-------------------------------------------------------------------------
+local showTween = TweenService:Create(m, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 1, -20)})
+showTween:Play()
+
+task.delay(3, function()
+    -- [PHẦN SỬA]: Trượt ra xa hơn xíu để chắc chắn mất hẳn nhó
+    local hideTween = TweenService:Create(m, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(1, 300, 1, -20)})
+    hideTween:Play()
+    
+    hideTween.Completed:Connect(function()
+        if renderSteppedConn then renderSteppedConn:Disconnect() end
+        g:Destroy()
+    end)
+end)
