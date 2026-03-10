@@ -1,0 +1,131 @@
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
+if setfpscap then setfpscap(999) end
+
+getgenv().AimM1 = true
+getgenv().AimDistance = 300
+getgenv().AimSmooth = 0.12
+getgenv().Key = ""
+getgenv().Setting = {
+    ["Fast Attack"] = true,
+    ["ATTACK_SPEED"] = 0.00001,
+    ["Hitbox"] = {
+        ["Enabled"] = true,
+        ["Size"] = 50,
+        ["Transparency"] = 0.7,
+    },
+    ["Team"] = "Pirate",
+    ["Method Click"] = {["Click Gun"] = false ,["Click Melee"] = false,["Click Sword"] = false,["Click Fruit"] = true, ["LowHealth"] = 0, ["Delay Click"] = 0},
+    ["Race V4"] = {["Enable"] = true},
+    ["Webhook"] = {["Enabled"] = true,["Url Webhook"] = ""},
+    ["AimM1"] = {["Enable"] = true,["AimDistance"] = 50,["AimSmooth"] = 0.12},
+    ["Misc"] = {["AutoBuyRandomandStoreFruit"] = false,["AutoBuySurprise"] = false},
+    ["SafeZone"] = {["Enable"] = true,["LowHealth"] = 4500,["MaxHealth"] = 6000,["Teleport Y"] = 45000},
+    ["Method Use Skill"] = {["Use Random"] = true,["Use Number"] = false},
+    ["Use random skill if player target low health"] = {
+        ["Enabled"] = true,
+        ["Low Health"] = 4000,
+    },
+    ["Use Portal Teleport"] = false,
+    ["Target Time"] = 30, 
+    ["Aim Prediction"] = 1,
+    ["Select Region"] = {["Enabled"] = true,["Region"] = {["Singapore"] = true,["United States"] = true,["Netherlands"] = true,["Germany"] =true,["India"] = true,["Vietnam"] = true}},
+    ["Ignore Devil Fruit"] = {"Human-Human","Portal-Portal"}, 
+    ["Dodge Skill Player"] = true,
+    ["Spam Dash"] = false,
+    ["Equip Weapon"] = {
+        ["Enabled"] = false,
+        ["Melee"] = {["Enabled"] = false,["Name Weapon"] = ""},
+        ["Sword"] = {["Enabled"] = false,["Name Weapon"] = ""},
+        ["Gun"] = {["Enabled"] = false,["Name Weapon"] = ""},
+    },
+    ["Weapons"] = {
+        ["Melee"] = {
+            ["Enable"] = false,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 2},
+                ["X"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 3},
+                ["C"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 5},
+            },
+        },
+        ["Blox Fruit"] = {
+            ["Enable"] = true,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 4},
+                ["X"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 6},
+                ["C"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 9},
+                ["V"] = {["Enable"] = false,["HoldTime"] = 0.3,["Number"] = 0},
+                ["F"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 8},
+            },
+        },
+        ["Gun"] = {
+            ["Enable"] = false,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 1},
+                ["X"] = {["Enable"] = true,["HoldTime"] = 0.3,["Number"] = 7},
+            },
+        },
+        ["Sword"] = {
+            ["Enable"] = false,
+            ["Skills"] = {
+                ["Z"] = {["Enable"] = true,["HoldTime"] = 1.5,["Number"] = 0},
+                ["X"] = {["Enable"] = true,["HoldTime"] = 0.5,["Number"] = 0},
+            },
+        },
+    }
+}
+
+function HopServer()
+    local HttpService = game:GetService("HttpService")
+    local TeleportService = game:GetService("TeleportService")
+    pcall(function()
+        local List = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"))
+        for _, v in pairs(List.data) do
+            if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id)
+                break
+            end
+        end
+    end)
+end
+
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().Setting["Hitbox"].Enabled then
+            local s = getgenv().Setting["Hitbox"].Size
+            local t = getgenv().Setting["Hitbox"].Transparency
+            pcall(function()
+                for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+                    if v:FindFirstChild("HumanoidRootPart") then
+                        v.HumanoidRootPart.Size = Vector3.new(s, s, s)
+                        v.HumanoidRootPart.Transparency = t
+                        v.HumanoidRootPart.CanCollide = false
+                    end
+                end
+                for _, p in pairs(game.Players:GetPlayers()) do
+                    if p ~= game.Players.LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        p.Character.HumanoidRootPart.Size = Vector3.new(s, s, s)
+                        p.Character.HumanoidRootPart.Transparency = t
+                        p.Character.HumanoidRootPart.CanCollide = false
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(5) do
+        local TargetFound = false
+        local myTeam = game.Players.LocalPlayer.Team
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= game.Players.LocalPlayer and p.Team ~= myTeam then
+                TargetFound = true
+                break
+            end
+        end
+        if not TargetFound then
+            HopServer()
+        end
+    end
+end)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/refs/heads/main/BananaCat-BountyEz.lua"))()
