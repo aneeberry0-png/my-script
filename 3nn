@@ -27,7 +27,7 @@ getgenv().Setting = {
 
     },
 
-    ["Team"] = "Pirate",
+    ["Team"] = "Marines",
 
     ["Method Click"] = {["Click Gun"] = false ,["Click Melee"] = false,["Click Sword"] = false,["Click Fruit"] = true, ["LowHealth"] = 0, ["Delay Click"] = 0},
 
