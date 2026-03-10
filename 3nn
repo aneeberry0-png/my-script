@@ -4,7 +4,7 @@ if setfpscap then setfpscap(999) end
 getgenv().AimM1 = true
 getgenv().AimDistance = 300
 getgenv().AimSmooth = 0.12
-getgenv().Key = ""
+getgenv().Key = "135a3a017d2b8d5d6283647b"
 getgenv().Setting = {
     ["Fast Attack"] = true,
     ["ATTACK_SPEED"] = 0.00001,
@@ -13,7 +13,7 @@ getgenv().Setting = {
         ["Size"] = 50,
         ["Transparency"] = 0.7,
     },
-    ["Team"] = "Pirate",
+    ["Team"] = Marines",
     ["Method Click"] = {["Click Gun"] = false ,["Click Melee"] = false,["Click Sword"] = false,["Click Fruit"] = true, ["LowHealth"] = 0, ["Delay Click"] = 0},
     ["Race V4"] = {["Enable"] = true},
     ["Webhook"] = {["Enabled"] = true,["Url Webhook"] = ""},
