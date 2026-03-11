@@ -280,3 +280,4 @@ local AttackInstance = FastAttack.new()
 table.insert(AttackInstance.Connections, RunService.Heartbeat:Connect(function()
     AttackInstance:Attack()
 end))
+
