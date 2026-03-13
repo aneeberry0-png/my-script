@@ -353,7 +353,7 @@ task.spawn(function()
                             if activeBoss then
                                 if rNum == 15 then
                                     if isPhaseTwo and hpPercent <= 70 then
-                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 1000, 0)
+                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 400, 0)
                                         updateUI("Boss Phase 2 - Low HP", "Safe Mode 1000 Studs")
                                     else
                                         _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 50, 0)
@@ -361,7 +361,7 @@ task.spawn(function()
                                     end
                                 elseif rNum == 20 then
                                     if hpPercent < 44 then
-                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 1000, 0)
+                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 400, 0)
                                         updateUI("Room 20 - Low HP", "Safe Mode 1000 Studs")
                                     else
                                         _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 50, 0)
@@ -373,7 +373,7 @@ task.spawn(function()
                                 end
                             else
                                 _G.KillH = false
-                                targetPos = (rNum == 15 and isPhaseTwo and hpPercent <= 70 or rNum == 20 and hpPercent < 44) and bHRP.Position + Vector3.new(0, 1000, 0) or bHRP.Position + Vector3.new(0, 100, 0)
+                                targetPos = (rNum == 15 and isPhaseTwo and hpPercent <= 70 or rNum == 20 and hpPercent < 44) and bHRP.Position + Vector3.new(0, 400, 0) or bHRP.Position + Vector3.new(0, 100, 0)
                                 updateUI("Boss Dead", "Waiting Despawn")
                             end
                             TS:Create(mHRP, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)}):Play()
