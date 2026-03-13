@@ -5,17 +5,17 @@ else
 end
 
 local plr = game:GetService("Players").LocalPlayer
-local checkDistance = 400
+local Workspace = game:GetService("Workspace")
+
+-- [PHẦN 1]: Lấy ToolTip từ Config
 local function getCurrentToolTip()
     if not getgenv().Configs then return nil end
-    
     local myName = string.lower(plr.Name)
     local myDisplayName = string.lower(plr.DisplayName)
     
     for _, data in pairs(getgenv().Configs) do
         if type(data) == "table" and data.Users then
             for _, user in pairs(data.Users) do
-                -- Lower cái tên trong config luôn cho chắc ăn nhó ann
                 local configUser = string.lower(tostring(user))
                 if configUser == myName or configUser == myDisplayName then 
                     return data.ToolTip 
@@ -26,43 +26,11 @@ local function getCurrentToolTip()
     return nil
 end
 
-local myToolTip = getCurrentToolTip()
-
--- Hàm check quái chuẩn xác cho Dungeon/Raid
-local function isEnemyNearby()
-    local character = plr.Character
-    if not character then return false end
-    local root = character:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
-    
-    -- Quét quái ở các folder phổ biến trong Raid
-    local enemyFolders = {
-        workspace:FindFirstChild("Enemies"),
-        workspace:FindFirstChild("NPCs"),
-        workspace -- Đôi khi quái ở ngay workspace
-    }
-    
-    for _, folder in pairs(enemyFolders) do
-        if folder then
-            for _, v in pairs(folder:GetChildren()) do
-                if v:IsA("Model") and v ~= character then
-                    local eRoot = v:FindFirstChild("HumanoidRootPart")
-                    local eHum = v:FindFirstChild("Humanoid")
-                    if eRoot and eHum and eHum.Health > 0 then
-                        if (root.Position - eRoot.Position).Magnitude <= checkDistance then
-                            return true
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return false
-end
-
--- Hàm tự cầm đồ (Equip Tool)
+-- [PHẦN 2]: Hàm tự cầm đồ (Equip Tool)
 local function equipToolByRole()
+    local myToolTip = getCurrentToolTip()
     if not myToolTip then return end
+    
     local character = plr.Character
     local backpack = plr:FindFirstChild("Backpack")
     
@@ -84,13 +52,17 @@ local function equipToolByRole()
     end
 end
 
+-- [PHẦN 3]: Kiểm tra điều kiện Dungeon để cầm đồ
 task.spawn(function()
     while true do
-        if isEnemyNearby() then
+        -- Kiểm tra sự tồn tại của folder Dungeon trong Workspace.Map
+        if Workspace.Map:FindFirstChild("Dungeon") then
+            -- Nếu đang trong Dungeon thì tự động cầm vũ khí nhó (っ˘ω˘ς)
             equipToolByRole()
-            task.wait(0.3) -- Có quái thì check nhanh hơn xíu nhó
+            task.wait(0.5) -- Check nhanh một xíu khi đang đi Raid
         else
-            task.wait(1) -- Hông có quái thì nghỉ xíu cho đỡ lag máy ann
+            -- Nếu hông có Dungeon (ở map thường) thì nghỉ ngơi xíu nhó
+            task.wait(2) 
         end
     end
 end)
