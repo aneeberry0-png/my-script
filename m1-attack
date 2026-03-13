@@ -27,7 +27,6 @@ local function AttackAll()
     local equippedWeapon = character:FindFirstChild("EquippedWeapon")
     if not equippedWeapon then return end
 
-
     local enemies = GetBladeHits()
     if #enemies > 0 then
         local netModule = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
@@ -55,7 +54,6 @@ local Workspace = game:GetService("Workspace")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local RunService = game:GetService("RunService")
 
-
 local Player = Players.LocalPlayer
 local Modules = ReplicatedStorage:WaitForChild("Modules")
 local Net = Modules:WaitForChild("Net")
@@ -68,7 +66,7 @@ local Config = {
     AttackDistance = 65,
     AttackMobs = true,
     AttackPlayers = true,
-    AttackCooldown = 0.2,
+    AttackCooldown = 0.1, -- Reduced base cooldown for Dungeon buffs
     ComboResetTime = 0.3,
     MaxCombo = 4,
     HitboxLimbs = {"RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand"},
@@ -246,7 +244,7 @@ function FastAttack:UseFruitM1(Character, Equipped, Combo)
 end
 
 function FastAttack:Attack()
-    if not Config.AutoClickEnabled or (tick() - self.Debounce) < Config.AttackCooldown then return end
+    if not Config.AutoClickEnabled then return end
     local Character = Player.Character
     if not Character or not self:IsEntityAlive(Character) then return end
     
@@ -257,12 +255,15 @@ function FastAttack:Attack()
     local ToolTip = Equipped.ToolTip
     if not table.find({"Melee", "Blox Fruit", "Sword", "Gun"}, ToolTip) then return end
     
-    local Cooldown = Equipped:FindFirstChild("Cooldown") and Equipped.Cooldown.Value or Config.AttackCooldown
+    local CurrentCooldown = Equipped:FindFirstChild("Cooldown") and Equipped.Cooldown.Value or Config.AttackCooldown
+    
+    -- Dynamic cooldown check to respect Dungeon buffs
+    if (tick() - self.Debounce) < (CurrentCooldown * 0.7) then return end
+    
     if not self:CheckStun(Character, Humanoid, ToolTip) then return end
     
     local Combo = self:GetCombo()
-    Cooldown = Cooldown + (Combo >= Config.MaxCombo and 0.05 or 0)
-    self.Debounce = Combo >= Config.MaxCombo and ToolTip ~= "Gun" and (tick() + 0.05) or tick()
+    self.Debounce = tick()
     
     if ToolTip == "Blox Fruit" and Equipped:FindFirstChild("LeftClickRemote") then
         self:UseFruitM1(Character, Equipped, Combo)
@@ -272,7 +273,7 @@ function FastAttack:Attack()
             self:ShootInTarget(Target.Position)
         end
     else
-        self:UseNormalClick(Character, Humanoid, Cooldown)
+        self:UseNormalClick(Character, Humanoid, CurrentCooldown)
     end
 end
 
@@ -280,4 +281,3 @@ local AttackInstance = FastAttack.new()
 table.insert(AttackInstance.Connections, RunService.Heartbeat:Connect(function()
     AttackInstance:Attack()
 end))
-
