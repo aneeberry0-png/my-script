@@ -1,32 +1,44 @@
 -- ==========================================
--- PHẦN 1: XỬ LÝ TRỌNG LỰC TOÀN CỤC
+-- PHẦN 1: THIẾT LẬP HÀM VÔ HIỆU HÓA VẬT LÝ
 -- ==========================================
--- Meyy~ sẽ đưa trọng lực về 0 để mọi thứ bay lơ lửng nhó (っ˘ω˘ς)
-game.Workspace.Gravity = 0
-
--- ==========================================
--- PHẦN 2: XÓA LỰC ĐẨY VẬT LÝ TRÊN NHÂN VẬT
--- ==========================================
--- Meyy~ sẽ lặp qua nhân vật của ann để vô hiệu hóa các tính chất vật lý nhó
+-- Meyy~ bọc code vào hàm để gọi lại mỗi khi ann reset nhó (っ˘ω˘ς)
 local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
 
-for _, part in pairs(character:GetDescendants()) do
-    if part:IsA("BasePart") then
-        -- Vô hiệu hóa lực đẩy và va chạm vật lý phản hồi
-        part.Velocity = Vector3.new(0, 0, 0)
-        part.RotVelocity = Vector3.new(0, 0, 0)
-        part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0) -- Friction, Elasticity = 0
+local function ApplyNoVelocity(character)
+    -- Đưa trọng lực về 0 ngay lập tức nhó
+    game.Workspace.Gravity = 0
+    
+    -- Xử lý các bộ phận nhân vật
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Velocity = Vector3.new(0, 0, 0)
+            part.RotVelocity = Vector3.new(0, 0, 0)
+            part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+        end
     end
 end
 
 -- ==========================================
--- PHẦN 3: DUY TRÌ TRẠNG THÁI (VÒNG LẶP)
+-- PHẦN 2: TỰ ĐỘNG CHẠY KHI RESET (CHARACTER ADDED)
 -- ==========================================
--- Meyy~ chạy vòng lặp để đảm bảo không có lực nào "lén" tác động vào ann nhó (๑˃ᴗ˂)ﻭ
+-- Meyy~ sẽ canh lúc ann hồi sinh để bật lại script nhó (๑˃ᴗ˂)ﻭ
+player.CharacterAdded:Connect(function(newCharacter)
+    ApplyNoVelocity(newCharacter)
+end)
+
+-- Chạy lần đầu tiên cho nhân vật hiện tại
+if player.Character then
+    ApplyNoVelocity(player.Character)
+end
+
+-- ==========================================
+-- PHẦN 3: DUY TRÌ TRẠNG THÁI LIÊN TỤC
+-- ==========================================
+-- Vòng lặp này sẽ luôn bám theo nhân vật mới nhất của ann nhó (っ˘ω˘ς)
 game:GetService("RunService").Heartbeat:Connect(function()
-    if character:FindFirstChild("HumanoidRootPart") then
-        character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
-        character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+    local currentCharacter = player.Character
+    if currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart") then
+        currentCharacter.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+        currentCharacter.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
     end
 end)
