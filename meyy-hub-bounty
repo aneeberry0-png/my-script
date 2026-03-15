@@ -1,5 +1,4 @@
-loading(game:HttpGet("https://raw.githubusercontent.com/tokaruun/script/refs/heads/main/checkkey.lua"))()
-if getgenv().KeySuccess then
+
 local CFG = getgenv().Setting    
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CommF_Remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
