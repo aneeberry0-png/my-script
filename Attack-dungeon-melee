@@ -148,6 +148,7 @@ local function iB()
 end
 
 local function fE()
+task.wait(1.2)
     local map = workspace:FindFirstChild("Map")
     local dungeon = map and map:FindFirstChild("Dungeon")
     if not dungeon then return nil end
@@ -210,7 +211,7 @@ local function executeFlyToNearestExit()
             end
         end
     end
-  if nearestRoot then task.wait(2) flyToNearestExit(nearestRoot.Position + Vector3.new(0, 3, 0)) end
+  if nearestRoot then task.wait(0.1) flyToNearestExit(nearestRoot.Position + Vector3.new(0, 3, 0)) end
 end
 
 local function getCurrentRoomNumber()
