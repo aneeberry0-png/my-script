@@ -1,3 +1,4 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity"))()
 _G.RaceClickAutov3 = true
 _G.RaceClickAutov4 = true
 _G.BusoAuto = true
