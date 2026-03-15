@@ -148,6 +148,7 @@ local function iB()
 end
 
 local function fE()
+task.wait(1.2)
     local map = workspace:FindFirstChild("Map")
     local dungeon = map and map:FindFirstChild("Dungeon")
     if not dungeon then return nil end
