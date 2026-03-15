@@ -1,13 +1,13 @@
+
+local Workspace = game:GetService("Workspace")
+local plr = game:GetService("Players").LocalPlayer
+
 if Workspace.Map:FindFirstChild("Dungeon") then
- loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/main-dungeon"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/main-dungeon"))()
 else
- loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/pad"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/pad"))()
 end
 
-local plr = game:GetService("Players").LocalPlayer
-local Workspace = game:GetService("Workspace")
-
--- [PHẦN 1]: Lấy ToolTip từ Config
 local function getCurrentToolTip()
     if not getgenv().Configs then return nil end
     local myName = string.lower(plr.Name)
@@ -26,7 +26,6 @@ local function getCurrentToolTip()
     return nil
 end
 
--- [PHẦN 2]: Hàm tự cầm đồ (Equip Tool)
 local function equipToolByRole()
     local myToolTip = getCurrentToolTip()
     if not myToolTip then return end
@@ -52,16 +51,12 @@ local function equipToolByRole()
     end
 end
 
--- [PHẦN 3]: Kiểm tra điều kiện Dungeon để cầm đồ
 task.spawn(function()
     while true do
-        -- Kiểm tra sự tồn tại của folder Dungeon trong Workspace.Map
         if Workspace.Map:FindFirstChild("Dungeon") then
-            -- Nếu đang trong Dungeon thì tự động cầm vũ khí nhó (っ˘ω˘ς)
             equipToolByRole()
-            task.wait(0.5) -- Check nhanh một xíu khi đang đi Raid
+            task.wait(0.5)
         else
-            -- Nếu hông có Dungeon (ở map thường) thì nghỉ ngơi xíu nhó
             task.wait(2) 
         end
     end
