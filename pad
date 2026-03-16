@@ -165,7 +165,7 @@ local function JoinDungeonTeleport()
                 if getPlayersInDungeon(dungeon.center) == 0 then
                     _G.SetFarmStatus("Status Farm: Entering " .. dungeon.name)
                     _G.FoundDungeon = dungeon.name
-                    tp(CFrame.new(dungeon.center + Vector3.new(0, 100, 0)))
+                    tp(CFrame.new(dungeon.center + Vector3.new(0, 3, 0)))
                     task.wait(4)
                     _G.StartDuggeon = true
                     _G.AccjoinRaid = false
