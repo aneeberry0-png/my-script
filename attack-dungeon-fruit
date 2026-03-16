@@ -406,10 +406,14 @@ task.spawn(function()
                         local hrpE = e:FindFirstChild("HumanoidRootPart")
                         if hrpE then h.CFrame = hrpE.CFrame; task.wait(TD) end 
                     end
-                    local x = fE()
-                    if x and isAlive() then 
-                        local pP = x.Position + Vector3.new(0, 10, 0); local pad = cP(pP); local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
-                        h.CFrame = sC; task.wait(0.1)
+                   local x = fE()
+if x and isAlive() then 
+    _G.KillH = false
+    local pP = x.Position + Vector3.new(0, 10, 0)
+    local pad = cP(pP)
+    local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
+    h.CFrame = sC
+    task.wait(0.1)
                         while isAlive() do 
                             local checkB, _ = iB(); if checkB then break end
                             local mList = {}; local enemiesAlive = 0
