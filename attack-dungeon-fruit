@@ -17,7 +17,7 @@ local IE = "Blank Buddy"
 local PROP_NAME = "PropHitboxPlaceholder" 
 local TD = 0.075
 local GR = 35
-local LS = 400
+local LS = 700
 local PR = 35
 local mT = 0
 local FLY_SPEED = 350
@@ -355,16 +355,16 @@ task.spawn(function()
                             if activeBoss then
                                 if rNum == 15 then
                                     if isPhaseTwo and hpPercent <= 93 then
-                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 400, 0)
-                                        updateUI("Boss Phase 2 - Low HP", "Safe Mode 400 Studs")
+                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 700, 0)
+                                        updateUI("Boss Phase 2 - Low HP", "Safe Mode 700 Studs")
                                     else
                                         _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 3, 0)
                                         updateUI(waitingForPhase2 and not isPhaseTwo and "Phase 1 Wait Phase 2" or "Phase 2 Active", "Close Combat")
                                     end
                                 elseif rNum == 20 then
                                     if hpPercent < 44 then
-                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 400, 0)
-                                        updateUI("Room 20 - Low HP", "Safe Mode 400 Studs")
+                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 700, 0)
+                                        updateUI("Room 20 - Low HP", "Safe Mode 700 Studs")
                                     else
                                         _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 3, 0)
                                         updateUI("Room 20 Boss", "Close Combat")
