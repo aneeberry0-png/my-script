@@ -176,7 +176,6 @@ local function JoinDungeonTeleport()
     end
 end
 
--- Logic Member (Follow)
 local function Accountteleaccjoin()
     local leaderName = CFG["Account Join Raid"].Users[1]:lower()
     while task.wait(0.5) do
@@ -201,15 +200,15 @@ local function Accountteleaccjoin()
                 end
                 if isLeaderInPad then
                     tp(leader.Character.HumanoidRootPart.CFrame)
-                    _G.SetFarmStatus("Status Farm: Teleporting to pad")
+                    SetFarmStatus("Status Farm: Teleporting to pad")
                     task.wait(2)
                     _G.StartDuggeon = true
                 else
-                    _G.SetFarmStatus("Status Farm: Waiting for leader")
+                    SetFarmStatus("Status Farm: Waiting for leader")
                     _G.StartDuggeon = false
                 end
             else
-                _G.SetFarmStatus("Status Farm: Searching for leader")
+                SetFarmStatus("Status Farm: Searching for leader")
             end
         end
     end
