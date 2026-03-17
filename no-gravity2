@@ -1,0 +1,38 @@
+local player = game.Players.LocalPlayer
+local runService = game:GetService("RunService")
+
+local function freezeCharacter(character)
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+    
+    -- Cách 1: Dùng BodyVelocity để triệt tiêu trọng lực hoàn toàn
+    local bv = Instance.new("BodyVelocity")
+    bv.Name = "AntiGravity"
+    bv.Velocity = Vector3.new(0, 0, 0)
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge) -- Lực vô hạn để giữ im
+    bv.Parent = rootPart
+
+    -- Cách 2: Khóa xoay để không bị đổ
+    local bg = Instance.new("BodyGyro")
+    bg.Name = "AntiRotation"
+    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bg.CFrame = rootPart.CFrame
+    bg.Parent = rootPart
+end
+
+-- Tự động áp dụng khi hồi sinh
+player.CharacterAdded:Connect(function(char)
+    freezeCharacter(char)
+end)
+
+if player.Character then
+    freezeCharacter(player.Character)
+end
+
+-- Duy trì vị trí để tránh bị ngoại lực đẩy đi
+runService.Heartbeat:Connect(function()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local root = player.Character.HumanoidRootPart
+        root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        root.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+    end
+end)
