@@ -409,7 +409,7 @@ task.spawn(function()
                    local x = fE()
 if x and isAlive() then 
     _G.KillH = false
-    local pP = x.Position + Vector3.new(0, 10, 0)
+    local pP = x.Position + Vector3.new(0, 55, 0)
     local pad = cP(pP)
     local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
     h.CFrame = sC
