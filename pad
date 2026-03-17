@@ -191,7 +191,7 @@ local function Accountteleaccjoin()
                 local leaderPos = leader.Character.HumanoidRootPart.Position
                 local isLeaderInPad = false
                 for _, dungeon in pairs(Dungeons) do
-                    local distance = (leaderPos - dungeon.center).Magnitude
+                    local distance = (Vector2.new(leaderPos.X, leaderPos.Z) - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude
                     if distance <= DungeonRadius then
                         isLeaderInPad = true
                         _G.FoundDungeon = dungeon.name
