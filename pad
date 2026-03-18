@@ -1,4 +1,3 @@
-
 local CFG = getgenv().Configs
 local ply = game:GetService("Players")
 local plr = ply.LocalPlayer
@@ -141,6 +140,7 @@ local Dungeons = {
     {name = "Dungeon 3", center = Vector3.new(-231.965, 232.758, -433.251)},
 }
 
+-- [PHẦN SỬA: TẠO NỀN MÓNG CHỐNG RƠI]
 local function CreatePlatform(pos)
     local pName = "Meyy_Platform_AntiFall"
     local old = workspace:FindFirstChild(pName)
@@ -148,12 +148,10 @@ local function CreatePlatform(pos)
     
     local p = Instance.new("Part")
     p.Name = pName
-    p.Size = Vector3.new(20, 1, 20) -- Độ rộng nền móng cho ann đi lại thoải mái
+    p.Size = Vector3.new(20, 1, 20)
     p.CFrame = CFrame.new(pos - Vector3.new(0, 3.5, 0))
     p.Anchored = true
-    -- Chỉnh Transparency xuống 0.5 để nó hiện lên mờ mờ như mây nhó ann (〃＾▽＾〃)
-    p.Transparency = 0.5 
-    p.Color = Color3.fromRGB(173, 216, 230) -- Màu xanh nhạt cho hợp với Cloud Theme nè
+    p.Transparency = 1
     p.CanCollide = true
     p.Parent = workspace
 end
@@ -287,35 +285,35 @@ end
 
 Init()
 
--- [CHỈ SỬA PHẦN START: 10 GIÂY GỬI 1 LẦN KHI ĐỨNG TRÊN PAD]
+-- Quick Start Pads & Difficulty Loops (Sửa chặn spam Remote)
 task.spawn(function()
     local PadsDungeons = {
         {name = "Dungeon 1", center = Vector3.new(-231.965485, 232.758224, -433.251038)},
         {name = "Dungeon 2", center = Vector3.new(-360.278137, 232.758224, -447.755859)},
         {name = "Dungeon 3", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
     }
-    local lastStartTick = 0 -- Dùng tick để tính thời gian nhó
-    while task.wait(1) do -- Kiểm tra mỗi giây cho nhạy
+    local hasStarted = false -- Chặn spam Start
+    while task.wait(3) do
         local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
             local pPos = Vector2.new(hrp.Position.X, hrp.Position.Z)
+            local onAnyPad = false
             for _, dungeon in pairs(PadsDungeons) do
                 local dist = (pPos - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude
                 if dist <= 10 then
-                    -- Nếu chưa gửi lần nào HOẶC đã quá 10 giây kể từ lần gửi cuối
-                    if tick() - lastStartTick >= 10 then
+                    onAnyPad = true
+                    if not hasStarted then
                         local padName = dungeon.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
                         local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
                         local pad = padsFolder and padsFolder:FindFirstChild(padName)
                         if pad then 
-                            pcall(function() 
-                                pad.DungeonSettingsChanged:FireServer("Start") 
-                            end) 
-                            lastStartTick = tick() -- Cập nhật thời gian gửi
+                            pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end) 
+                            hasStarted = true
                         end
                     end
                 end
             end
+            if not onAnyPad then hasStarted = false end
         end
     end
 end)
