@@ -133,15 +133,35 @@ _G.AccountJoin = false
 _G.StartDuggeon = false
 _G.FoundDungeon = nil
 local DungeonRadius = 20
+local HeightOffset = Vector3.new(0, 100, 0) -- Độ cao bay lên
+
 local Dungeons = {
     {name = "Dungeon 1", center = Vector3.new(-487.545, 232.758, -433.559)},
     {name = "Dungeon 2", center = Vector3.new(-360.278, 232.758, -447.755)},
     {name = "Dungeon 3", center = Vector3.new(-231.965, 232.758, -433.251)},
 }
 
+local function CreatePlatform(pos)
+    local pName = "Meyy_Platform_AntiFall"
+    local old = workspace:FindFirstChild(pName)
+    if old then old:Destroy() end
+    
+    local p = Instance.new("Part")
+    p.Name = pName
+    p.Size = Vector3.new(20, 1, 20) -- Độ rộng nền móng cho ann đi lại thoải mái
+    p.CFrame = CFrame.new(pos - Vector3.new(0, 3.5, 0))
+    p.Anchored = true
+    -- Chỉnh Transparency xuống 0.5 để nó hiện lên mờ mờ như mây nhó ann (〃＾▽＾〃)
+    p.Transparency = 0.5 
+    p.Color = Color3.fromRGB(173, 216, 230) -- Màu xanh nhạt cho hợp với Cloud Theme nè
+    p.CanCollide = true
+    p.Parent = workspace
+end
+
 local function tp(cframe)
     if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
         plr.Character.HumanoidRootPart.CFrame = cframe
+        CreatePlatform(cframe.Position) -- Tạo móng mỗi khi dịch chuyển
     end
 end
 
@@ -149,7 +169,10 @@ local function getPlayersInDungeon(center)
     local count = 0
     for _, player in pairs(ply:GetPlayers()) do
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            if (player.Character.HumanoidRootPart.Position - center).Magnitude <= DungeonRadius then
+            -- Tính khoảng cách ngang (X, Z) để không bị lỗi khi bay cao
+            local pPos = player.Character.HumanoidRootPart.Position
+            local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(center.X, center.Z)).Magnitude
+            if dist <= DungeonRadius then
                 count = count + 1
             end
         end
@@ -165,7 +188,7 @@ local function JoinDungeonTeleport()
                 if getPlayersInDungeon(dungeon.center) == 0 then
                     _G.SetFarmStatus("Status Farm: Entering " .. dungeon.name)
                     _G.FoundDungeon = dungeon.name
-                    tp(CFrame.new(dungeon.center + Vector3.new(0, 3, 0)))
+                    tp(CFrame.new(dungeon.center + HeightOffset))
                     task.wait(4)
                     _G.StartDuggeon = true
                     _G.AccjoinRaid = false
@@ -191,8 +214,9 @@ local function Accountteleaccjoin()
                 local leaderPos = leader.Character.HumanoidRootPart.Position
                 local isLeaderInPad = false
                 for _, dungeon in pairs(Dungeons) do
-                    local distance = (leaderPos - dungeon.center).Magnitude  
-                    if distance <= DungeonRadius then
+                    -- Kiểm tra leader có ở trên pad không (chỉ xét X, Z)
+                    local dist = (Vector2.new(leaderPos.X, leaderPos.Z) - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude
+                    if dist <= DungeonRadius then
                         isLeaderInPad = true
                         _G.FoundDungeon = dungeon.name
                         break
@@ -200,15 +224,15 @@ local function Accountteleaccjoin()
                 end
                 if isLeaderInPad then
                     tp(leader.Character.HumanoidRootPart.CFrame)
-                    SetFarmStatus("Status Farm: Teleporting to pad")
+                    _G.SetFarmStatus("Status Farm: Teleporting to pad")
                     task.wait(2)
                     _G.StartDuggeon = true
                 else
-                    SetFarmStatus("Status Farm: Waiting for leader")
+                    _G.SetFarmStatus("Status Farm: Waiting for leader")
                     _G.StartDuggeon = false
                 end
             else
-                SetFarmStatus("Status Farm: Searching for leader")
+                _G.SetFarmStatus("Status Farm: Searching for leader")
             end
         end
     end
@@ -263,22 +287,33 @@ end
 
 Init()
 
--- Quick Start Pads & Difficulty Loops (Giữ nguyên từ code gốc của ann)
+-- [CHỈ SỬA PHẦN START: 10 GIÂY GỬI 1 LẦN KHI ĐỨNG TRÊN PAD]
 task.spawn(function()
     local PadsDungeons = {
         {name = "Dungeon 1", center = Vector3.new(-231.965485, 232.758224, -433.251038)},
         {name = "Dungeon 2", center = Vector3.new(-360.278137, 232.758224, -447.755859)},
         {name = "Dungeon 3", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
     }
-    while task.wait(3) do
+    local lastStartTick = 0 -- Dùng tick để tính thời gian nhó
+    while task.wait(1) do -- Kiểm tra mỗi giây cho nhạy
         local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
+            local pPos = Vector2.new(hrp.Position.X, hrp.Position.Z)
             for _, dungeon in pairs(PadsDungeons) do
-                if (hrp.Position - dungeon.center).Magnitude <= 10 then
-                    local padName = dungeon.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
-                    local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-                    local pad = padsFolder and padsFolder:FindFirstChild(padName)
-                    if pad then pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end) end
+                local dist = (pPos - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude
+                if dist <= 10 then
+                    -- Nếu chưa gửi lần nào HOẶC đã quá 10 giây kể từ lần gửi cuối
+                    if tick() - lastStartTick >= 10 then
+                        local padName = dungeon.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
+                        local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
+                        local pad = padsFolder and padsFolder:FindFirstChild(padName)
+                        if pad then 
+                            pcall(function() 
+                                pad.DungeonSettingsChanged:FireServer("Start") 
+                            end) 
+                            lastStartTick = tick() -- Cập nhật thời gian gửi
+                        end
+                    end
                 end
             end
         end
@@ -286,6 +321,7 @@ task.spawn(function()
 end)
 
 task.spawn(function()
+    local lastDiffSent = "" -- Chặn spam Difficulty
     while task.wait(2) do
         pcall(function()
             local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -299,10 +335,14 @@ task.spawn(function()
                     {name = "DUNGEON_TELEPORTER3", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
                 }
                 for _, d in pairs(Coords) do
-                    if (hrp.Position - d.center).Magnitude <= 20 then
-                        local pad = padsFolder:FindFirstChild(d.name)
-                        if pad and pad:FindFirstChild("DungeonSettingsChanged") then
-                            pad.DungeonSettingsChanged:FireServer("Difficulty", diff)
+                    local dist = (Vector2.new(hrp.Position.X, hrp.Position.Z) - Vector2.new(d.center.X, d.center.Z)).Magnitude
+                    if dist <= 20 then
+                        if lastDiffSent ~= diff then
+                            local pad = padsFolder:FindFirstChild(d.name)
+                            if pad and pad:FindFirstChild("DungeonSettingsChanged") then
+                                pad.DungeonSettingsChanged:FireServer("Difficulty", diff)
+                                lastDiffSent = diff
+                            end
                         end
                     end
                 end
