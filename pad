@@ -165,7 +165,7 @@ local function JoinDungeonTeleport()
                 if getPlayersInDungeon(dungeon.center) == 0 then
                     _G.SetFarmStatus("Status Farm: Entering " .. dungeon.name)
                     _G.FoundDungeon = dungeon.name
-                    tp(CFrame.new(dungeon.center + Vector3.new(0, 3, 0)))
+                    tp(CFrame.new(dungeon.center + Vector3.new(0, 103, 0)))
                     task.wait(4)
                     _G.StartDuggeon = true
                     _G.AccjoinRaid = false
@@ -266,11 +266,11 @@ Init()
 -- Quick Start Pads & Difficulty Loops (Giữ nguyên từ code gốc của ann)
 task.spawn(function()
     local PadsDungeons = {
-        {name = "Dungeon 1", center = Vector3.new(-231.965485, 232.758224, -433.251038)},
-        {name = "Dungeon 2", center = Vector3.new(-360.278137, 232.758224, -447.755859)},
-        {name = "Dungeon 3", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
+        {name = "Dungeon 1", center = Vector3.new(-231.965485, 332.758224, -433.251038)},
+        {name = "Dungeon 2", center = Vector3.new(-360.278137, 332.758224, -447.755859)},
+        {name = "Dungeon 3", center = Vector3.new(-487.545013, 332.758224, -433.559204)},
     }
-    while task.wait(1) do
+    while task.wait(3) do
         local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
             for _, dungeon in pairs(PadsDungeons) do
@@ -294,9 +294,9 @@ task.spawn(function()
             local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
             if padsFolder then
                 local Coords = {
-                    {name = "DUNGEON_TELEPORTER1", center = Vector3.new(-231.965485, 232.758224, -433.251038)},
-                    {name = "DUNGEON_TELEPORTER2", center = Vector3.new(-360.278137, 232.758224, -447.755859)},
-                    {name = "DUNGEON_TELEPORTER3", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
+                    {name = "DUNGEON_TELEPORTER1", center = Vector3.new(-231.965485, 332.758224, -433.251038)},
+                    {name = "DUNGEON_TELEPORTER2", center = Vector3.new(-360.278137, 332.758224, -447.755859)},
+                    {name = "DUNGEON_TELEPORTER3", center = Vector3.new(-487.545013, 332.758224, -433.559204)},
                 }
                 for _, d in pairs(Coords) do
                     if (hrp.Position - d.center).Magnitude <= 20 then
