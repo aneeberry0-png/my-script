@@ -1,9 +1,3 @@
---[[ 
-    FULL SCRIPT MODIFIED BY meyy~ 
-    - [Meyy Update] Normal Room: Standing 50 studs above mobs on Y axis
-    - [Meyy Update] Fixed Status Format: "Status Farm: ..." and "Farm Mob: ..."
-    - [Meyy Update] Integrated Cloud Theme UI (ʚ₊˚meყყ ♡ Hub˚₊ɞ)
-]]
 
 local R = game:GetService("RunService")
 local P = game:GetService("Players")
@@ -234,7 +228,7 @@ local function getCurrentRoomNumber()
 end
 
 -------------------------------------------------------------------------
--- COMBAT & MAIN LOOP ---------------------------------------------------
+-- COMBAT LOGIC ---------------------------------------------------------
 -------------------------------------------------------------------------
 _G.KillH = false 
 _G.TargetMob = nil 
@@ -242,11 +236,13 @@ _G.TargetMob = nil
 local Attack = {}
 local Sec = 0.1 
 
+-- ADD NAMES HERE TO ENABLE KILL AURA (〃＾▽＾〃)
 local ValidTargets = {
     ["Zero"] = true,
     ["Gas Knight"] = true,
     ["Kitsune Lord"] = true,
-    ["Ancient Beast"] = true
+    ["Ancient Beast"] = true,
+    ["Raider"] = true
 }
 
 Attack.Alive = function(model)
@@ -271,6 +267,9 @@ task.spawn(function()
     end
 end)
 
+-------------------------------------------------------------------------
+-- MAIN LOOP ------------------------------------------------------------
+-------------------------------------------------------------------------
 task.spawn(function()
     local lastFarmText = ""
     local lastMobText = ""
@@ -292,6 +291,7 @@ task.spawn(function()
     while true do 
         workspace.Gravity = 0
         if not isAlive() then
+            _G.TargetMob = nil
             updateUI("Character Died", "Resetting")
             sM(); p.CharacterAdded:Wait(); task.wait(1); continue 
         end
@@ -300,6 +300,7 @@ task.spawn(function()
         local currentRoom = getCurrentRoomNumber()
         
         if currentRoom > 0 and currentRoom < rNum then
+            _G.TargetMob = nil
             updateUI("Tween To Portal " .. rNum, "Moving")
             executeFlyToNearestExit(); task.wait(2); continue 
         end
@@ -315,7 +316,7 @@ task.spawn(function()
                 while isAlive() do
                     workspace.Gravity = 0 
                     local checkStillBoss, _ = iB()
-                    if not checkStillBoss then break end
+                    if not checkStillBoss then _G.TargetMob = nil; break end
 
                     local priorityTarget = nil
                     local activeBoss = nil
@@ -330,6 +331,7 @@ task.spawn(function()
                     end
 
                     local targetBoss = activeBoss or deadBoss
+                    _G.TargetMob = priorityTarget or targetBoss -- ASSIGN TARGET FOR BOSS
 
                     if rNum == 15 and priorityTarget then
                         _G.KillH = false
@@ -370,7 +372,7 @@ task.spawn(function()
                                         updateUI("Room 20 Boss", "Close Combat")
                                     end
                                 else
-                                    _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 100, 0)
+                                    _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 250, 0)
                                     updateUI("Boss Room " .. rNum, "Standard Farm")
                                 end
                             else
@@ -382,7 +384,7 @@ task.spawn(function()
                         end
                         task.wait(0.1)
                     else
-                        _G.KillH = false
+                        _G.KillH = false; _G.TargetMob = nil
                         if fE() then break end
                         task.wait(0.1)
                     end
@@ -390,7 +392,7 @@ task.spawn(function()
             end
             task.wait(0.4) 
         else 
-            _G.KillH = false
+            _G.KillH = false; _G.TargetMob = nil
             local f = workspace:FindFirstChild(EF); local h = gH()
             if f and h then 
                 local i = {}
@@ -408,8 +410,10 @@ task.spawn(function()
                         local hrpE = e:FindFirstChild("HumanoidRootPart")
                         local humE = e:FindFirstChild("Humanoid")
                         
-                        -- Meyy Update: Tween to 50 studs above target (〃＾▽＾〃)
                         if hrpE and humE and humE.Health > 0 then
+                            _G.TargetMob = e -- ASSIGN TARGET FOR NORMAL MOBS
+                            _G.KillH = true 
+
                             local targetCF = hrpE.CFrame * CFrame.new(0, 50, 0)
                             local tween = TS:Create(h, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {CFrame = targetCF})
                             tween:Play()
@@ -417,15 +421,18 @@ task.spawn(function()
                             
                             repeat 
                                 if not isAlive() then break end
+                                _G.TargetMob = e 
                                 h.CFrame = hrpE.CFrame * CFrame.new(0, 50, 0)
                                 task.wait(0.1)
                             until not e.Parent or not (humE and humE.Health > 0)
+                            
+                            _G.TargetMob = nil; _G.KillH = false
                         end
                     end
 
                     local x = fE()
                     if x and isAlive() then 
-                        _G.KillH = false
+                        _G.KillH = false; _G.TargetMob = nil
                         local pP = x.Position + Vector3.new(0, 55, 0)
                         local pad = cP(pP)
                         local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
@@ -445,12 +452,12 @@ task.spawn(function()
                                     end 
                                 end 
                             end
-                            if enemiesAlive == 0 then updateUI("Tween To Portal", "Clear") break end
+                            if enemiesAlive == 0 then _G.TargetMob = nil; updateUI("Tween To Portal", "Clear") break end
                             if nextTarget then
                                 local hrpE = nextTarget:FindFirstChild("HumanoidRootPart")
                                 local humE = nextTarget:FindFirstChild("Humanoid")
                                 if hrpE and humE then
-                                    -- Meyy Update: Keep 50 studs distance
+                                    _G.TargetMob = nextTarget; _G.KillH = true
                                     h.CFrame = hrpE.CFrame * CFrame.new(0, 50, 0)
                                     task.wait(TD)
                                 end
