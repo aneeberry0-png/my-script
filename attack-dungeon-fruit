@@ -377,7 +377,7 @@ task.spawn(function()
                                         updateUI("Room 20 Boss", "Close Combat")
                                     end
                                 else
-                                    _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 100, 0)
+                                    _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 250, 0)
                                     updateUI("Boss Room " .. rNum, "Standard Farm")
                                 end
                             else
