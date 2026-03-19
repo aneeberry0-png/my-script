@@ -2,7 +2,8 @@
     FULL SCRIPT MODIFIED BY meyy~ 
     - [Meyy Update] Fixed Status Format: "Status Farm: ..." and "Farm Mob: ..."
     - [Meyy Update] Integrated Cloud Theme UI (ʚ₊˚meყყ ♡ Hub˚₊ɞ)
-    - [Meyy Update] UI: 100% English, NO emojis in status text
+    - [Meyy Update] Kill Aura: Only targets specific names (Zero, Gas Knight, Kitsune Lord, Ancient Beast).
+    - [Meyy Update] FIXED: Integrated TargetMob assignment into main logic loops.
 ]]
 
 local R = game:GetService("RunService")
@@ -118,7 +119,7 @@ end)
 TS:Create(m, TweenInfo.new(1.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0, 20)}):Play()
 
 -------------------------------------------------------------------------
--- LOGIC FUNCTIONS (STRICTLY NO UI CHANGE HERE) -------------------------
+-- LOGIC FUNCTIONS ------------------------------------------------------
 -------------------------------------------------------------------------
 local function gH()
     local c = p.Character or p.CharacterAdded:Wait()
@@ -233,13 +234,15 @@ local function getCurrentRoomNumber()
     return cR
 end
 
+-------------------------------------------------------------------------
+-- COMBAT LOGIC ---------------------------------------------------------
+-------------------------------------------------------------------------
 _G.KillH = false 
 _G.TargetMob = nil 
 
 local Attack = {}
 local Sec = 0.1 
 
--- DANH SÁCH MỤC TIÊU CHỈ ĐỊNH (ʚ₊˚meყყ ♡˚₊ɞ)
 local ValidTargets = {
     ["Zero"] = true,
     ["Gas Knight"] = true,
@@ -253,40 +256,30 @@ Attack.Alive = function(model)
     return Humanoid and Humanoid.Health > 0
 end
 
--- HÀM KILL AURA: CHỈ ĐÁNH KHI THỎA MÃN CẢ TÊN VÀ LOGIC GỐC (〃＾▽＾〃)
 task.spawn(function()
     while task.wait(Sec) do
-        -- Chỉ chạy khi logic chính bật _G.KillH = true (khi đã check HP/Phase xong)
         if _G.KillH and _G.TargetMob then
             local v = _G.TargetMob
-            
-            -- ĐIỀU KIỆN QUYẾT ĐỊNH: Phải đúng tên trong danh sách ann cho!
             if v and v.Parent and ValidTargets[v.Name] and Attack.Alive(v) then
                 pcall(function()
-                    if sethiddenproperty then 
-                        pcall(sethiddenproperty, p, "SimulationRadius", math.huge) 
-                    end
-                    
-                    -- Thực hiện hành động tiêu diệt
+                    if sethiddenproperty then pcall(sethiddenproperty, p, "SimulationRadius", math.huge) end
                     v:BreakJoints()
-                    if v:FindFirstChild("Humanoid") then 
-                        v.Humanoid.Health = 0 
-                    end
-                    if v:FindFirstChild("HumanoidRootPart") then 
-                        v.HumanoidRootPart.Size = Vector3.new(60, 60, 60) 
-                    end
+                    if v:FindFirstChild("Humanoid") then v.Humanoid.Health = 0 end
+                    if v:FindFirstChild("HumanoidRootPart") then v.HumanoidRootPart.Size = Vector3.new(60, 60, 60) end
                 end)
             end
         end
     end
 end)
 
+-------------------------------------------------------------------------
+-- MAIN LOOP ------------------------------------------------------------
+-------------------------------------------------------------------------
 task.spawn(function()
     local lastFarmText = ""
     local lastMobText = ""
 
     local function updateUI(farmMsg, mobMsg)
-        -- SỬA LẠI FORMAT THEO Ý ann (〃＾▽＾〃)
         local farmFullText = "Status Farm: " .. tostring(farmMsg)
         local mobFullText = "Farm Mob: " .. tostring(mobMsg)
         
@@ -303,6 +296,7 @@ task.spawn(function()
     while true do 
         workspace.Gravity = 0
         if not isAlive() then
+            _G.TargetMob = nil
             updateUI("Character Died", "Resetting")
             sM(); p.CharacterAdded:Wait(); task.wait(1); continue 
         end
@@ -311,6 +305,7 @@ task.spawn(function()
         local currentRoom = getCurrentRoomNumber()
         
         if currentRoom > 0 and currentRoom < rNum then
+            _G.TargetMob = nil
             updateUI("Tween To Portal " .. rNum, "Moving")
             executeFlyToNearestExit(); task.wait(2); continue 
         end
@@ -326,7 +321,7 @@ task.spawn(function()
                 while isAlive() do
                     workspace.Gravity = 0 
                     local checkStillBoss, _ = iB()
-                    if not checkStillBoss then break end
+                    if not checkStillBoss then _G.TargetMob = nil; break end
 
                     local priorityTarget = nil
                     local activeBoss = nil
@@ -341,6 +336,7 @@ task.spawn(function()
                     end
 
                     local targetBoss = activeBoss or deadBoss
+                    _G.TargetMob = priorityTarget or targetBoss -- GÁN MỤC TIÊU BOSS (〃＾▽＾〃)
 
                     if rNum == 15 and priorityTarget then
                         _G.KillH = false
@@ -393,7 +389,7 @@ task.spawn(function()
                         end
                         task.wait(0.1)
                     else
-                        _G.KillH = false
+                        _G.KillH = false; _G.TargetMob = nil
                         if fE() then break end
                         task.wait(0.1)
                     end
@@ -401,7 +397,7 @@ task.spawn(function()
             end
             task.wait(0.4) 
         else 
-            _G.KillH = false
+            _G.KillH = false; _G.TargetMob = nil
             local f = workspace:FindFirstChild(EF); local h = gH()
             if f and h then 
                 local i = {}
@@ -415,12 +411,13 @@ task.spawn(function()
                     updateUI("Clear Room " .. rNum, "Clearing Mobs")
                     for _, e in ipairs(i) do 
                         if not isAlive() then break end
+                        _G.TargetMob = e; _G.KillH = true -- GÁN QUÁI THƯỜNG (〃＾▽＾〃)
                         local hrpE = e:FindFirstChild("HumanoidRootPart")
                         if hrpE then h.CFrame = hrpE.CFrame; task.wait(TD) end 
                     end
                    local x = fE()
 if x and isAlive() then 
-    _G.KillH = false
+    _G.KillH = false; _G.TargetMob = nil
     local pP = x.Position + Vector3.new(0, 55, 0)
     local pad = cP(pP)
     local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
@@ -438,14 +435,15 @@ if x and isAlive() then
                                     end 
                                 end 
                             end
-                            if enemiesAlive == 0 then updateUI("Tween To Portal", "Clear") break end
+                            if enemiesAlive == 0 then _G.TargetMob = nil; updateUI("Tween To Portal", "Clear") break end
                             if #mList == 0 then break end
                             for _, e in ipairs(mList) do 
                                 if not isAlive() then break end
+                                _G.TargetMob = e; _G.KillH = true -- GÁN MỤC TIÊU Ở SAFE PLATFORM
                                 local hrpE = e:FindFirstChild("HumanoidRootPart")
                                 if hrpE then h.CFrame = hrpE.CFrame; task.wait(TD) end 
                             end
-                            if isAlive() then h.CFrame = sC; task.wait(TD); task.wait(0.1) end
+                            if isAlive() then _G.TargetMob = nil; _G.KillH = false; h.CFrame = sC; task.wait(TD); task.wait(0.1) end
                         end 
                     end 
                 else updateUI("Tween To Portal", "Clear") end
