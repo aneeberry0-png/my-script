@@ -1,24 +1,44 @@
 
-
 local plr = game.Players.LocalPlayer
 
 local function GetRole()
     local myName = plr.Name:lower()
-    for _, n in pairs(getgenv().Configs["Account Join Raid"].Users) do
-        if n:lower() == myName then return "Account Join Raid" end
+    
+    if getgenv().Configs and getgenv().Configs["Account Join Raid"] then
+        for _, n in pairs(getgenv().Configs["Account Join Raid"].Users) do
+            if n:lower() == myName then return "Account Join Raid" end
+        end
     end
-    for _, n in pairs(getgenv().Configs["Account Join"].Users) do
-        if n:lower() == myName then return "Account Join" end
+    
+    if getgenv().Configs and getgenv().Configs["Account Join"] then
+        for _, n in pairs(getgenv().Configs["Account Join"].Users) do
+            if n:lower() == myName then return "Account Join" end
+        end
     end
+    
     return nil
 end
 
 local myRole = GetRole()
 
 if myRole == "Account Join Raid" then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-fruit"))()
+    local m1_src = game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/m1-attack")
+    if m1_src then
+        task.spawn(function()
+            loadstring(m1_src)()
+        end)
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/attack-dungeon-fruit"))()
+    end
+
 elseif myRole == "Account Join" then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Dungeon-melle"))()
+    local m1_src = game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/m1-attack")
+    if m1_src then
+        task.spawn(function()
+            loadstring(m1_src)()
+        end)
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/Attack-dungeon-melee"))()
+    end
+
 else
     warn("Account not in Config. Script Stopped.")
 end
