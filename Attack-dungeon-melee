@@ -237,8 +237,17 @@ end
 -- COMBAT & MAIN LOOP ---------------------------------------------------
 -------------------------------------------------------------------------
 _G.KillH = false 
+_G.TargetMob = nil 
+
 local Attack = {}
 local Sec = 0.1 
+
+local ValidTargets = {
+    ["Zero"] = true,
+    ["Gas Knight"] = true,
+    ["Kitsune Lord"] = true,
+    ["Ancient Beast"] = true
+}
 
 Attack.Alive = function(model)
     if not model then return end
@@ -248,22 +257,15 @@ end
 
 task.spawn(function()
     while task.wait(Sec) do
-        if _G.KillH then
-            local enemyFolder = workspace:FindFirstChild(EF)
-            if enemyFolder then
-                for _, v in pairs(enemyFolder:GetChildren()) do
-                    if v.Name ~= IE and Attack.Alive(v) then
-                        pcall(function()
-                            repeat
-                                task.wait(Sec)
-                                if sethiddenproperty then pcall(sethiddenproperty, p, "SimulationRadius", math.huge) end
-                                v:BreakJoints()
-                                if v:FindFirstChild("Humanoid") then v.Humanoid.Health = 0 end
-                                if v:FindFirstChild("HumanoidRootPart") then v.HumanoidRootPart.Size = Vector3.new(60, 60, 60) end
-                            until not _G.KillH or not v.Parent or not Attack.Alive(v)
-                        end)
-                    end
-                end
+        if _G.KillH and _G.TargetMob then
+            local v = _G.TargetMob
+            if v and v.Parent and ValidTargets[v.Name] and Attack.Alive(v) then
+                pcall(function()
+                    if sethiddenproperty then pcall(sethiddenproperty, p, "SimulationRadius", math.huge) end
+                    v:BreakJoints()
+                    if v:FindFirstChild("Humanoid") then v.Humanoid.Health = 0 end
+                    if v:FindFirstChild("HumanoidRootPart") then v.HumanoidRootPart.Size = Vector3.new(60, 60, 60) end
+                end)
             end
         end
     end
