@@ -473,3 +473,120 @@ task.spawn(function()
         end 
     end 
 end)
+
+
+
+local plr = game.Players.LocalPlayer
+local runService = game:GetService("RunService")
+
+-- [ Section: Target Configuration ] --
+local ValidTargets = {
+    ["Zero"] = true,
+    ["Gas Knight"] = true,
+    ["Kitsune Lord"] = true,
+    ["Ancient Beast"] = true
+}
+
+-- [ Section: Ground Detection Logic ] --
+local function GetGroundPosition(position)
+    local rayOrigin = position + Vector3.new(0, 50, 0)
+    local rayDirection = Vector3.new(0, -100, 0)
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {workspace:FindFirstChild("Enemies"), workspace:FindFirstChild("NPCs"), plr.Character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+    if raycastResult then
+        return raycastResult.Position + Vector3.new(0, 3, 0)
+    end
+    return position
+end
+
+-- [ Section: Target Selection Logic ] --
+local function GetTargetBringPos(mobName, isBoss)
+    -- Neu la Boss, tra ve vi tri hien tai cua chinh no de Lock tai cho
+    if isBoss then return nil end 
+
+    local dungeonFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Dungeon")
+    if dungeonFolder then
+        local latestRoom = nil
+        local maxNumber = -1
+        for _, room in pairs(dungeonFolder:GetChildren()) do
+            local roomNum = tonumber(room.Name)
+            if roomNum and roomNum > maxNumber then
+                maxNumber = roomNum
+                latestRoom = room
+            end
+        end
+        if latestRoom then
+            local cf, size = latestRoom:GetBoundingBox()
+            return cf.Position
+        end
+    end
+
+    local totalPos = Vector3.zero
+    local count = 0
+    local folder = workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("NPCs")
+    if folder then
+        for _, v in pairs(folder:GetChildren()) do
+            if v.Name:find(mobName) and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                totalPos = totalPos + v.HumanoidRootPart.Position
+                count = count + 1
+            end
+        end
+    end
+    return count > 0 and (totalPos / count) or nil
+end
+
+-- [ Section: High-Frequency Execution ] --
+_G.AutoBring = true
+task.spawn(function()
+    runService.Stepped:Connect(function()
+        if not _G.AutoBring then return end
+        local folder = workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("NPCs")
+        if not folder then return end
+        
+        pcall(function()
+            sethiddenproperty(plr, "SimulationRadius", math.huge)
+            sethiddenproperty(plr, "MaxSimulationRadius", math.huge)
+        end)
+
+        local centers = {}
+        for _, mob in pairs(folder:GetChildren()) do
+            if mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
+                local hrp = mob.HumanoidRootPart
+                local hum = mob.Humanoid
+                
+                if hum.Health > 0 then
+                    local mobName = mob.Name
+                    local isBoss = ValidTargets[mobName]
+                    local finalTarget = nil
+
+                    if isBoss then
+                        -- [ Logic: Lock Boss ]
+                        -- Boss se bi khoa tai vi tri hien tai cua no (bam dat)
+                        finalTarget = GetGroundPosition(hrp.Position)
+                    else
+                        -- [ Logic: Bring Mob ]
+                        -- Quai thuong moi bi keo ve center
+                        if not centers[mobName] then
+                            local rawPos = GetTargetBringPos(mobName, false)
+                            if rawPos then centers[mobName] = GetGroundPosition(rawPos) end
+                        end
+                        finalTarget = centers[mobName]
+                    end
+                    
+                    if finalTarget and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        if (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 1000 then
+                            hrp.CFrame = CFrame.new(finalTarget)
+                            hrp.Velocity = Vector3.new(0, 0, 0)
+                            hrp.RotVelocity = Vector3.new(0, 0, 0)
+                            hrp.CanCollide = false
+                            if hum:FindFirstChild("Animator") then hum.Animator:Destroy() end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end)
