@@ -11,7 +11,7 @@ local IE = "Blank Buddy"
 local PROP_NAME = "PropHitboxPlaceholder" 
 local TD = 0.075
 local GR = 35
-local LS = 400
+local LS = 700
 local PR = 35
 local mT = 0
 local FLY_SPEED = 350
@@ -19,6 +19,7 @@ local FLY_SPEED = 350
 -------------------------------------------------------------------------
 -- UI SECTION (CLOUD THEME) ---------------------------------------------
 -------------------------------------------------------------------------
+
 local g = Instance.new("ScreenGui")
 g.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
 g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -357,18 +358,18 @@ task.spawn(function()
                             if activeBoss then
                                 if rNum == 15 then
                                     if isPhaseTwo and hpPercent <= 93 then
-                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 400, 0)
-                                        updateUI("Boss Phase 2 - Low HP", "Safe Mode 400 Studs")
+                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 700, 0)
+                                        updateUI("Boss Phase 2 - Low HP", "Safe Mode 700 Studs")
                                     else
                                         _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 50, 0)
                                         updateUI(waitingForPhase2 and not isPhaseTwo and "Phase 1 Wait Phase 2" or "Phase 2 Active", "Close Combat")
                                     end
                                 elseif rNum == 20 then
                                     if hpPercent < 44 then
-                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 400, 0)
-                                        updateUI("Room 20 - Low HP", "Safe Mode 400 Studs")
+                                        _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 700, 0)
+                                        updateUI("Room 20 - Low HP", "Safe Mode 700 Studs")
                                     else
-                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 50, 0)
+                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 30, 0)
                                         updateUI("Room 20 Boss", "Close Combat")
                                     end
                                 else
@@ -377,7 +378,7 @@ task.spawn(function()
                                 end
                             else
                                 _G.KillH = false
-                                targetPos = (rNum == 15 and isPhaseTwo and hpPercent <= 93 or rNum == 20 and hpPercent < 44) and bHRP.Position + Vector3.new(0, 400, 0) or bHRP.Position + Vector3.new(0, 100, 0)
+                                targetPos = (rNum == 15 and isPhaseTwo and hpPercent <= 93 or rNum == 20 and hpPercent < 44) and bHRP.Position + Vector3.new(0, 700, 0) or bHRP.Position + Vector3.new(0, 100, 0)
                                 updateUI("Boss Dead", "Waiting Despawn")
                             end
                             TS:Create(mHRP, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)}):Play()
