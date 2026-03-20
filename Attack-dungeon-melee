@@ -361,7 +361,7 @@ task.spawn(function()
                                         _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 700, 0)
                                         updateUI("Boss Phase 2 - Low HP", "Safe Mode 700 Studs")
                                     else
-                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 50, 0)
+                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 30, 0)
                                         updateUI(waitingForPhase2 and not isPhaseTwo and "Phase 1 Wait Phase 2" or "Phase 2 Active", "Close Combat")
                                     end
                                 elseif rNum == 20 then
