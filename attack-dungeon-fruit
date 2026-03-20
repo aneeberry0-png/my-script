@@ -377,12 +377,12 @@ task.spawn(function()
                                         updateUI("Room 20 Boss", "Close Combat")
                                     end
                                 else
-                                    _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 250, 0)
+                                    _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 400, 0)
                                     updateUI("Boss Room " .. rNum, "Standard Farm")
                                 end
                             else
                                 _G.KillH = false
-                                targetPos = (rNum == 15 and isPhaseTwo and hpPercent <= 93 or rNum == 20 and hpPercent < 44) and bHRP.Position + Vector3.new(0, 400, 0) or bHRP.Position + Vector3.new(0, 100, 0)
+                                targetPos = (rNum == 15 and isPhaseTwo and hpPercent <= 93 or rNum == 20 and hpPercent < 44) and bHRP.Position + Vector3.new(0, 700, 0) or bHRP.Position + Vector3.new(0, 100, 0)
                                 updateUI("Boss Dead", "Waiting Despawn")
                             end
                             TS:Create(mHRP, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)}):Play()
