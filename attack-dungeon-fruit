@@ -303,6 +303,14 @@ task.spawn(function()
 
         local isBoss, rNum = iB()
         local currentRoom = getCurrentRoomNumber()
+
+            if currentRoom >= 21 then
+                _G.KillH = false
+                _G.TargetMob = nil
+                updateUI("Room 21 Reached", "Auto Farm Stopped")
+                task.wait(2)
+                continue -- Skip all farming logic below
+            end
         
         if currentRoom > 0 and currentRoom < rNum then
             _G.TargetMob = nil
