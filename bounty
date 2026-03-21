@@ -1,7 +1,4 @@
-getgenv().Team = "Pirates"
-getgenv().Config = {
-    BlackScreen = false
-}
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local LocalPlayer = Players.LocalPlayer
