@@ -48,37 +48,38 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-scr
 loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
 
 -------------------------------------------------------------card--------------------------------
-
 local Players = game:GetService("Players")
 local vim = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
+-- Chia nhỏ cấu tạo: Danh sách độ ưu tiên buff
 local presetMap = {
     ["Sword"] = {"HYPER!", "Sword", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Melee", "Fruit", "Fruit M1 Speed"},
     ["Melee"] = {"HYPER!", "Melee", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Sword", "Fruit", "Fruit M1 Speed"},
     ["Blox Fruit"] = {"Fruit M1 Speed", "Fruit", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Melee", "Sword", "HYPER!"},
 }
 
+-- Chia nhỏ cấu tạo: Hàm lấy Priority riêng cho từng acc
 local function getMyPriorityList()
     local myName = player.Name
-    local myRole = "Fruit"
+    local myRole = "Blox Fruit" -- Mặc định là Fruit nhó
+    
     if getgenv().Config then
         for _, group in pairs(getgenv().Config) do
             if type(group) == "table" and group.Users then
                 for _, user in ipairs(group.Users) do
                     if user == myName then
-                        myRole = group.Buff or group.ToolTip
+                        myRole = group.ToolTip or "Blox Fruit"
                         break
                     end
                 end
             end
         end
     end
-    return presetMap[myRole] or presetMap["Fruit"]
+    return presetMap[myRole] or presetMap["Blox Fruit"]
 end
 
-local MY_PRIORITY = getMyPriorityList()
-
+-- Chia nhỏ cấu tạo: Hàm click ảo
 local function simulateClick(obj)
     local x = obj.AbsolutePosition.X + (obj.AbsoluteSize.X / 2)
     local y = obj.AbsolutePosition.Y + (obj.AbsoluteSize.Y / 2)
@@ -90,18 +91,19 @@ local function simulateClick(obj)
     end
 end
 
+-- Chia nhỏ cấu tạo: Logic tự động chọn Buff
 local function autoPickBuff()
     local pGui = player:WaitForChild("PlayerGui")
+    -- Meyy~ đưa list ưu tiên vào đây để mỗi lần check nó đều nhận diện đúng acc
+    local currentPriority = getMyPriorityList()
     
-    for _, targetName in ipairs(MY_PRIORITY) do
+    for _, targetName in ipairs(currentPriority) do
         local targetLower = targetName:lower()
         
         for _, gui in ipairs(pGui:GetChildren()) do
             if gui:IsA("ScreenGui") and gui.Enabled then
-                
                 local frame1 = gui:FindFirstChild("1")
                 if frame1 and frame1.Visible then
-                    
                     local foundMatch = false
                     for _, child in pairs(frame1:GetDescendants()) do
                         if child:IsA("TextLabel") and child.Visible then
@@ -123,6 +125,7 @@ local function autoPickBuff()
     return false
 end
 
+-- Chia nhỏ cấu tạo: Vòng lặp thực thi
 task.spawn(function()
     while task.wait(0.5) do
         local success = autoPickBuff()
