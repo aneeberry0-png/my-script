@@ -15,11 +15,11 @@ local plr = Players.LocalPlayer
 
 
 local function getCurrentToolTip()
-    if not getgenv().Configs then return nil end
+    if not getgenv().Config then return nil end
     local myName = string.lower(plr.Name)
     local myDisplayName = string.lower(plr.DisplayName)
     
-    for _, data in pairs(getgenv().Configs) do
+    for _, data in pairs(getgenv().Config) do
         if type(data) == "table" and data.Users then
             for _, user in pairs(data.Users) do
                 local configUser = string.lower(tostring(user))
