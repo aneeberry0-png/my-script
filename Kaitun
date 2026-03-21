@@ -1,3 +1,17 @@
+local function joinMarines()
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") and game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommF_")
+    if remote then
+        remote:InvokeServer("SetTeam", "Marines")
+    end
+end
+
+-- Chia nhỏ cấu tạo: Vòng lặp kiểm tra
+task.spawn(function()
+    repeat task.wait(0.5)
+        joinMarines()
+    until game:GetService("Players").LocalPlayer.Team ~= nil
+end)
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity2"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/join-dungeon"))()
