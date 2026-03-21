@@ -4,14 +4,14 @@ local plr = game.Players.LocalPlayer
 local function GetRole()
     local myName = plr.Name:lower()
     
-    if getgenv().Configs and getgenv().Configs["Account Join Raid"] then
-        for _, n in pairs(getgenv().Configs["Account Join Raid"].Users) do
+    if getgenv().Config and getgenv().Config["Account Join Raid"] then
+        for _, n in pairs(getgenv().Config["Account Join Raid"].Users) do
             if n:lower() == myName then return "Account Join Raid" end
         end
     end
     
-    if getgenv().Configs and getgenv().Configs["Account Join"] then
-        for _, n in pairs(getgenv().Configs["Account Join"].Users) do
+    if getgenv().Config and getgenv().Config["Account Join"] then
+        for _, n in pairs(getgenv().Config["Account Join"].Users) do
             if n:lower() == myName then return "Account Join" end
         end
     end
@@ -62,8 +62,8 @@ local presetMap = {
 local function getMyPriorityList()
     local myName = player.Name
     local myRole = "Fruit"
-    if getgenv().Configs then
-        for _, group in pairs(getgenv().Configs) do
+    if getgenv().Config then
+        for _, group in pairs(getgenv().Config) do
             if type(group) == "table" and group.Users then
                 for _, user in ipairs(group.Users) do
                     if user == myName then
