@@ -33,7 +33,7 @@ end)
 if player.Character then
     startWalking(player.Character)
 end
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity2"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/m1-attack"))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -48,7 +48,7 @@ local UserInputService = game:GetService("UserInputService")
 local CONFIG = {
     FollowDelay = 0.0,
     SwitchDelay = 8,
-    Offset = Vector3.new(, 0, 4),
+    Offset = Vector3.new(0, 0, 5),
     MinBounty = 0,
     SkimDelay = 0.05 
 }
