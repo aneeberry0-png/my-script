@@ -237,7 +237,6 @@ _G.TargetMob = nil
 local Attack = {}
 local Sec = 0.1 
 
--- ADD NAMES HERE TO ENABLE KILL AURA (〃＾▽＾〃)
 local ValidTargets = {
     ["Zero"] = true,
     ["Gas Knight"] = true,
@@ -303,6 +302,7 @@ task.spawn(function()
         if currentRoom >= 31 then
             _G.KillH = false
             _G.TargetMob = nil
+            _G.KillH = true
             updateUI("Room 31 Reached", "Auto Farm Stopped")
             task.wait(2)
             continue -- Skip all farming logic below
@@ -442,7 +442,7 @@ task.spawn(function()
                     local x = fE()
                     if x and isAlive() then 
                         _G.KillH = false; _G.TargetMob = nil
-                        local pP = x.Position + Vector3.new(0, 55, 0)
+                        local pP = x.Position + Vector3.new(0, 25, 0)
                         local pad = cP(pP)
                         local sC = CFrame.new(pP + Vector3.new(0, 3, 0))
                         h.CFrame = sC
