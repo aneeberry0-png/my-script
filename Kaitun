@@ -1,6 +1,6 @@
 local teamSelected = false
 
-local function joinPirates()
+local function joinMarines()
     local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") and game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommF_")
     if remote then
         remote:InvokeServer("SetTeam", "Pirates")
