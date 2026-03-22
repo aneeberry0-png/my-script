@@ -1,9 +1,9 @@
 local teamSelected = false
 
-local function joinMarines()
+local function joinPirates()
     local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") and game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommF_")
     if remote then
-        remote:InvokeServer("SetTeam", "Marines")
+        remote:InvokeServer("SetTeam", "Pirates")
     end
 end
 
@@ -12,7 +12,7 @@ task.spawn(function()
     if not game:GetService("Workspace").Map:FindFirstChild("Dungeon") then
         repeat 
             task.wait(0.5)
-            joinMarines()
+            joiPirates()
         until game:GetService("Players").LocalPlayer.Team ~= nil
         
         task.wait(3)
