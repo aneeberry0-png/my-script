@@ -7,18 +7,16 @@ local function joinMarines()
     end
 end
 
--- Chia nhỏ cấu tạo: Vòng lặp kiểm tra
+
 task.spawn(function()
     repeat task.wait(0.5)
         joinMarines()
     until game:GetService("Players").LocalPlayer.Team ~= nil
     
-    -- Chờ thêm vài giây sau khi vào team xong nè ann
     task.wait(3)
     teamSelected = true
 end)
 
--- Chỉ load script sau khi teamSelected = true
 task.spawn(function()
     repeat task.wait(0.1) until teamSelected
     loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity2"))()
@@ -81,7 +79,6 @@ local function equipToolByRole()
     end
 end
 
--- Hàm bấm phím kỹ năng
 local function Useskills(key)
     VIM:SendKeyEvent(true, key, false, game)
     task.wait(0.1)
@@ -156,7 +153,6 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- Phần load script chính cũng chờ teamSelected luôn nhó
 task.spawn(function()
     repeat task.wait(0.1) until teamSelected
     if Workspace.Map:FindFirstChild("Dungeon") then
