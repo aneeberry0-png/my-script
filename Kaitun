@@ -7,14 +7,20 @@ local function joinMarines()
     end
 end
 
-
 task.spawn(function()
-    repeat task.wait(0.5)
-        joinMarines()
-    until game:GetService("Players").LocalPlayer.Team ~= nil
-    
-    task.wait(3)
-    teamSelected = true
+
+    if not game:GetService("Workspace").Map:FindFirstChild("Dungeon") then
+        repeat 
+            task.wait(0.5)
+            joinMarines()
+        until game:GetService("Players").LocalPlayer.Team ~= nil
+        
+        task.wait(3)
+        teamSelected = true
+    else
+
+        teamSelected = true
+    end
 end)
 
 task.spawn(function()
