@@ -8,22 +8,6 @@ local function joinMarines()
 end
 
 task.spawn(function()
-
-    if not game:GetService("Workspace").Map:FindFirstChild("Dungeon") then
-        repeat 
-            task.wait(0.5)
-            joiPirates()
-        until game:GetService("Players").LocalPlayer.Team ~= nil
-        
-        task.wait(3)
-        teamSelected = true
-    else
-
-        teamSelected = true
-    end
-end)
-
-task.spawn(function()
     repeat task.wait(0.1) until teamSelected
     loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity2"))()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
