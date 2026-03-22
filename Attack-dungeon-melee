@@ -369,7 +369,7 @@ task.spawn(function()
                                         _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 700, 0)
                                         updateUI("Boss Phase 2 - Low HP", "Safe Mode 700 Studs")
                                     else
-                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 30, 0)
+                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 25, 0)
                                         updateUI(waitingForPhase2 and not isPhaseTwo and "Phase 1 Wait Phase 2" or "Phase 2 Active", "Close Combat")
                                     end
                                 elseif rNum == 20 then
@@ -377,7 +377,7 @@ task.spawn(function()
                                         _G.KillH = true; targetPos = bHRP.Position + Vector3.new(0, 700, 0)
                                         updateUI("Room 20 - Low HP", "Safe Mode 700 Studs")
                                     else
-                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 30, 0)
+                                        _G.KillH = false; targetPos = bHRP.Position + Vector3.new(0, 25, 0)
                                         updateUI("Room 20 Boss", "Close Combat")
                                     end
                                 else
@@ -423,7 +423,7 @@ task.spawn(function()
                             _G.TargetMob = e -- ASSIGN TARGET FOR NORMAL MOBS
                             _G.KillH = true 
 
-                            local targetCF = hrpE.CFrame * CFrame.new(0, 50, 0)
+                            local targetCF = hrpE.CFrame * CFrame.new(0, 25, 0)
                             local tween = TS:Create(h, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {CFrame = targetCF})
                             tween:Play()
                             tween.Completed:Wait()
@@ -431,7 +431,7 @@ task.spawn(function()
                             repeat 
                                 if not isAlive() then break end
                                 _G.TargetMob = e 
-                                h.CFrame = hrpE.CFrame * CFrame.new(0, 50, 0)
+                                h.CFrame = hrpE.CFrame * CFrame.new(0, 25, 0)
                                 task.wait(0.1)
                             until not e.Parent or not (humE and humE.Health > 0)
                             
@@ -467,7 +467,7 @@ task.spawn(function()
                                 local humE = nextTarget:FindFirstChild("Humanoid")
                                 if hrpE and humE then
                                     _G.TargetMob = nextTarget; _G.KillH = true
-                                    h.CFrame = hrpE.CFrame * CFrame.new(0, 50, 0)
+                                    h.CFrame = hrpE.CFrame * CFrame.new(0, 25, 0)
                                     task.wait(TD)
                                 end
                             end
