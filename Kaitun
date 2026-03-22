@@ -1,3 +1,5 @@
+local teamSelected = false
+
 local function joinMarines()
     local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") and game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommF_")
     if remote then
@@ -10,11 +12,20 @@ task.spawn(function()
     repeat task.wait(0.5)
         joinMarines()
     until game:GetService("Players").LocalPlayer.Team ~= nil
+    
+    -- Chờ thêm vài giây sau khi vào team xong nè ann
+    task.wait(3)
+    teamSelected = true
 end)
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity2"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/join-dungeon"))()
+-- Chỉ load script sau khi teamSelected = true
+task.spawn(function()
+    repeat task.wait(0.1) until teamSelected
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/no-gravity2"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/join-dungeon"))()
+end)
+
 _G.RaceClickAutov3 = true
 _G.RaceClickAutov4 = true
 _G.BusoAuto = true
@@ -80,7 +91,8 @@ end
 
 task.spawn(function()
     while true do
-        if Workspace.Map:FindFirstChild("Dungeon") then
+        -- Chỉ chạy logic equip khi đã chọn team xong
+        if teamSelected and Workspace.Map:FindFirstChild("Dungeon") then
             equipToolByRole()
             task.wait(0.5)
         else
@@ -91,7 +103,8 @@ end)
 
 task.spawn(function()
     while task.wait(0.5) do
-        if _G.RaceClickAutov3 then
+        -- Chỉ chạy auto v3 khi đã chọn team xong
+        if teamSelected and _G.RaceClickAutov3 then
             pcall(function()
                 replicated.Remotes.CommE:FireServer("ActivateAbility")
             end)
@@ -102,7 +115,8 @@ end)
 
 task.spawn(function()
     while task.wait(0.2) do
-        if _G.RaceClickAutov4 then
+        -- Chỉ chạy auto v4 khi đã chọn team xong
+        if teamSelected and _G.RaceClickAutov4 then
             pcall(function()
                 local char = plr.Character
                 if char and char:FindFirstChild("RaceEnergy") then
@@ -117,7 +131,8 @@ end)
 
 task.spawn(function()
     while task.wait(1) do
-        if _G.BusoAuto then
+        -- Chỉ chạy Buso khi đã chọn team xong
+        if teamSelected and _G.BusoAuto then
             pcall(function()
                 if plr.Character and not plr.Character:FindFirstChild("HasBuso") then
                     replicated.Remotes.CommF_:InvokeServer("Buso")
@@ -128,7 +143,8 @@ task.spawn(function()
 end)
 
 RunService.Stepped:Connect(function()
-    if noclipEnabled then
+    -- Chỉ noclip khi đã chọn team xong
+    if teamSelected and noclipEnabled then
         local char = plr.Character
         if char then
             for _, part in pairs(char:GetDescendants()) do
@@ -140,8 +156,12 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-if Workspace.Map:FindFirstChild("Dungeon") then
-loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/main-dungeon"))()
-else
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/pad"))()
-end
+-- Phần load script chính cũng chờ teamSelected luôn nhó
+task.spawn(function()
+    repeat task.wait(0.1) until teamSelected
+    if Workspace.Map:FindFirstChild("Dungeon") then
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/main-dungeon"))()
+    else
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/aneeberry0-png/my-script/refs/heads/main/pad"))()
+    end
+end)
